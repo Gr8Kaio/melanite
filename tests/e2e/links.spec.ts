@@ -18,7 +18,8 @@ async function boot(page: Page, notes: Record<string, string> = {}) {
 const run = (page: Page, id: string) => page.evaluate((id) => (window as any).app.commands.executeCommandById(id), id);
 const openNote = (page: Page, path: string) => page.evaluate((p) => (window as any).app.workspace.getLeaf(false).openFile((window as any).app.vault.getFileByPath(p)), path);
 const noteText = (page: Page, path: string) => page.evaluate((p) => (window as any).app.vault.cachedReadSync((window as any).app.vault.getFileByPath(p)), path);
-const title = (page: Page) => page.locator('.mod-root .view-header-title').filter({ visible: true });
+// en el teléfono el encabezado de la vista se oculta: el título va en la barra única
+const title = (page: Page) => (isPhone(page) ? page.locator('.mobile-navbar-title') : page.locator('.mod-root .view-header-title').filter({ visible: true }));
 
 /** Atajo de teclado en escritorio; en el teléfono no hay teclado físico: se ejecuta el comando. */
 async function hotkey(page: Page, keys: string, id: string) {
@@ -92,7 +93,7 @@ test('backlinks y menciones sin linkear', async ({ page }) => {
 test('renombrar una nota actualiza los links entrantes', async ({ page }) => {
   await boot(page, { 'Vieja.md': '# H', 'Otra.md': 'Ver [[Vieja]] y [[Vieja#H|alias]] y [md](Vieja.md)' });
   await openNote(page, 'Vieja.md');
-  await title(page).click();
+  if (isPhone(page)) await run(page, 'file:rename'); else await title(page).click();
   await page.locator('.modal .prompt-input').fill('Nueva');
   await page.keyboard.press('Enter');
   await expect(title(page)).toHaveText('Nueva');
@@ -133,6 +134,9 @@ test('autocompletado de [[ y propiedades', async ({ page }) => {
   await expect(tip).toBeVisible();
   await expect(tip.locator('li').first()).toContainText('Zanahoria');
   await shot(page, 'autocomplete');
+  // CodeMirror ignora Enter en los primeros ms del popup (interactionDelay)
+  await expect(tip.locator('li[aria-selected]')).toBeVisible();
+  await page.waitForTimeout(200);
   await page.keyboard.press('Enter');
   await expect.poll(() => page.evaluate(() => (window as any).app.getActiveMarkdownView().getViewData())).toContain('[[Zanahoria]]');
 

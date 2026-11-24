@@ -29,6 +29,7 @@ export class MarkdownView extends FileView {
   private renderChild: Component | null = null;
   private saveTimer = 0;
   private dirty = false;
+  private lastSaved: string | null = null;
   private modeButton: HTMLElement;
 
   constructor(leaf: WorkspaceLeaf) {
@@ -92,7 +93,8 @@ export class MarkdownView extends FileView {
     this.registerEvent(this.app.vault.on('modify', (f: TFile) => {
       if (f !== this.file) return;
       const text = this.app.vault.cachedReadSync(f);
-      if (text !== this.getViewData()) this.replaceDoc(text);
+      // el eco de nuestro propio guardado llega tarde (IndexedDB es async): si mientras tanto se siguió escribiendo, no pisarlo
+      if (text !== this.getViewData() && text !== this.lastSaved) this.replaceDoc(text);
       if (this.mode === 'preview') void this.renderReading();
     }));
     const refresh = () => this.cm.dispatch({ effects: refreshLivePreview.of(null) });
@@ -193,7 +195,8 @@ export class MarkdownView extends FileView {
     this.dirty = false;
     const file = this.file;
     if (!this.app.vault.getFileByPath(file.path)) return;
-    await this.app.vault.modify(file, this.getViewData());
+    this.lastSaved = this.getViewData();
+    await this.app.vault.modify(file, this.lastSaved);
   }
 
   // ---- interno

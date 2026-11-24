@@ -1,3 +1,5 @@
+import { Prec } from '@codemirror/state';
+import { keymap } from '@codemirror/view';
 import { Plugin } from '../../../api/plugin';
 import type { App } from '../../app';
 import { ItemView, type ViewState } from '../../views/view';
@@ -104,6 +106,9 @@ export class SearchView extends ItemView {
 }
 
 export default class SearchPlugin extends Plugin {
+  /** Igual que en Obsidian: otros plugins (bookmarks) abren la búsqueda con esto. */
+  openGlobalSearch(query: string): void { void openSearch(this.app, query); }
+
   onload(): void {
     this.registerView(SEARCH_VIEW, (leaf) => new SearchView(leaf));
     this.addCommand({
@@ -114,6 +119,15 @@ export default class SearchPlugin extends Plugin {
       },
     });
     this.addRibbonIcon('search', t('search.cmd'), () => openSearch(this.app));
+    // CodeMirror, si no tiene Shift-Mod-f, prueba Mod-f (su buscador) y se come el atajo:
+    // dentro del editor, los atajos Mod+Shift de la app tienen prioridad
+    this.registerEditorExtension(Prec.high(keymap.of([{
+      any: (_view, e) => {
+        if (!e.shiftKey || !(e.ctrlKey || e.metaKey)) return false;
+        this.app.commands.handleKeydown(e);
+        return e.defaultPrevented;
+      },
+    }])));
     this.app.workspace.onLayoutReady(() => void ensureSidePanel(this.app, SEARCH_VIEW, 'left'));
     // click en un #tag del modo lectura o de las propiedades → buscarlo
     this.registerDomEvent(document, 'click', (e: MouseEvent) => {

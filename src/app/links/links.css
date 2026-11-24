@@ -107,7 +107,8 @@ kbd.suggestion-hotkey { font-family: var(--font-interface); font-size: var(--fon
 
 /* ---------- autocompletado del editor */
 .cm-tooltip.cm-tooltip-autocomplete { background: var(--background-secondary-alt); border: 1px solid var(--background-modifier-border); border-radius: var(--radius-m); box-shadow: var(--shadow); padding: 4px; }
-.cm-tooltip.cm-tooltip-autocomplete > ul { font-family: var(--font-interface); max-height: 280px; max-width: min(420px, 90vw); }
+/* el tema base de CodeMirror lleva una clase extra: hace falta más especificidad */
+.markdown-source-view .cm-editor .cm-tooltip.cm-tooltip-autocomplete > ul { font-family: var(--font-interface); max-height: 280px; max-width: min(420px, 90vw); }
 .cm-tooltip.cm-tooltip-autocomplete > ul > li { padding: 5px 8px; border-radius: var(--radius-s); color: var(--text-normal); }
 .cm-tooltip.cm-tooltip-autocomplete > ul > li[aria-selected] { background: var(--background-modifier-active-hover); color: var(--text-normal); }
 .cm-tooltip-autocomplete .cm-completionDetail { color: var(--text-faint); font-style: normal; margin-left: 10px; font-size: var(--font-ui-smaller); }
