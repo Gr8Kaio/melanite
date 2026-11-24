@@ -1,6 +1,10 @@
 /* estilos del módulo links */
 
 /* ---------- paneles del sidebar */
+/* fila clickeable (como .tree-item-self del explorador, con clase propia para no mezclarse con él) */
+.ml-tree-item { display: flex; align-items: center; gap: 4px; min-height: 28px; padding: 2px 8px 2px 10px; border-radius: var(--radius-s); color: var(--text-muted); font-size: var(--font-ui-small); cursor: pointer; user-select: none; -webkit-user-select: none; }
+.ml-tree-item:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
+.is-mobile .ml-tree-item { min-height: var(--touch-target); font-size: var(--font-ui-medium); }
 .ml-pane { padding: 6px 6px 24px; font-size: var(--font-ui-small); }
 .ml-pane-empty { color: var(--text-faint); padding: 8px 10px; font-size: var(--font-ui-smaller); }
 .ml-pane-section + .ml-pane-section { margin-top: 10px; }

@@ -47,7 +47,7 @@ export class TagsView extends ItemView {
     const draw = (node: TagNode, parent: HTMLElement, depth: number) => {
       for (const child of [...node.children.values()].sort((a, b) => a.name.localeCompare(b.name))) {
         const wrap = parent.createDiv('ml-tag-node');
-        const self = wrap.createDiv({ cls: 'tree-item-self ml-tag-item', attr: { 'data-tag': child.full } });
+        const self = wrap.createDiv({ cls: 'ml-tree-item ml-tag-item', attr: { 'data-tag': child.full } });
         self.style.setProperty('--depth', String(depth));
         const toggle = self.createDiv({ cls: 'ml-tag-toggle', attr: { 'aria-label': child.name } });
         if (child.children.size) setIcon(toggle, this.collapsed.has(child.full) ? 'chevron-right' : 'chevron-down');

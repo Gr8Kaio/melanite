@@ -38,7 +38,7 @@ export class OutgoingLinksView extends ItemView {
       else unresolved.set(p, (unresolved.get(p) ?? 0) + 1);
     }
     const row = (parent: HTMLElement, icon: string, text: string, count: number, cls: string, onClick: (e: MouseEvent) => unknown) => {
-      const item = parent.createDiv({ cls: `tree-item-self ml-link-row ${cls}` });
+      const item = parent.createDiv({ cls: `ml-tree-item ml-link-row ${cls}` });
       setIcon(item.createDiv('ml-link-row-icon'), icon);
       item.createDiv({ cls: 'tree-item-inner', text });
       if (count > 1) item.createDiv({ cls: 'ml-result-count', text: String(count) });

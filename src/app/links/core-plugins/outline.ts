@@ -28,7 +28,7 @@ export class OutlineView extends ItemView {
     if (!headings.length) { renderEmpty(el, t('links.noHeadings')); return; }
     const min = Math.min(...headings.map((h) => h.level));
     for (const h of headings) {
-      const item = el.createDiv({ cls: 'tree-item-self ml-outline-item', attr: { 'data-level': h.level } });
+      const item = el.createDiv({ cls: 'ml-tree-item ml-outline-item', attr: { 'data-level': h.level } });
       item.style.setProperty('--depth', String(h.level - min));
       item.createDiv({ cls: 'tree-item-inner', text: h.heading });
       item.addEventListener('click', () => void openAtLine(this.app, file, h.position.start.line, false, { subpath: `#${h.heading}` }));

@@ -27,7 +27,7 @@ export function renderFileGroup(parent: HTMLElement, opts: {
   title: string; path?: string; count?: number; matches: ResultMatch[]; onTitleClick: (evt: MouseEvent) => unknown;
 }): HTMLElement {
   const group = parent.createDiv('ml-result-file');
-  const head = group.createDiv({ cls: 'ml-result-file-title tree-item-self', attr: { 'data-path': opts.path ?? null } });
+  const head = group.createDiv({ cls: 'ml-result-file-title ml-tree-item', attr: { 'data-path': opts.path ?? null } });
   const toggle = head.createDiv({ cls: 'ml-result-collapse clickable-icon', attr: { 'aria-label': opts.title } });
   setIcon(toggle, 'chevron-down');
   head.createDiv({ cls: 'tree-item-inner', text: opts.title });

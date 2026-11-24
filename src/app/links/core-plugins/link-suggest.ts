@@ -128,8 +128,10 @@ export function tagSource(app: App) {
 
 export default class LinkSuggestPlugin extends Plugin {
   onload(): void {
+    const data = [{ autocomplete: wikilinkSource(this.app) }, { autocomplete: tagSource(this.app) }];
     this.registerEditorExtension([
-      EditorState.languageData.of(() => [{ autocomplete: wikilinkSource(this.app) }, { autocomplete: tagSource(this.app) }]),
+      // las fuentes se crean una sola vez: autocomplete las compara por identidad
+      EditorState.languageData.of(() => data),
       autocompletion({ icons: false, closeOnBlur: true, maxRenderedOptions: LIMIT }),
     ]);
   }
