@@ -2,11 +2,15 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import pkg from './package.json' with { type: 'json' };
 
-export default defineConfig({
-  base: '/melanite/',
+export default defineConfig(({ mode }) => {
+  const desktop = mode === 'desktop'; // build para Electron: base raíz, sin service worker
+  return {
+  base: desktop ? '/' : '/melanite/',
+  build: desktop ? { outDir: 'dist-desktop', chunkSizeWarningLimit: 2000 } : { chunkSizeWarningLimit: 2000 },
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
     VitePWA({
+      disable: desktop,
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
@@ -33,7 +37,6 @@ export default defineConfig({
       },
     }),
   ],
-  // mermaid trae chunks grandes, pero se cargan solo si una nota tiene un diagrama
-  build: { chunkSizeWarningLimit: 2000 },
   test: { environment: 'node', include: ['tests/unit/**/*.test.ts'] },
+};
 });

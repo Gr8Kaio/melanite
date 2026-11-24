@@ -25,4 +25,5 @@ main().catch((err) => {
   document.body.textContent = `Melanite could not start: ${(err as Error).message}`;
 });
 
-registerSW({ immediate: true });
+// en escritorio (app://) el build va empaquetado: sin service worker
+if (location.protocol !== 'app:') registerSW({ immediate: true });
