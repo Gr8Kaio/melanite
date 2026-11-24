@@ -23,6 +23,14 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
-      - run: npx electron-builder --win --publish always
+      # electron-builder solo arma; el release lo crea gh (publicado, no borrador) y sube los archivos
+      - run: npx electron-builder --win --publish never
+      - name: Release
+        shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          case "$TAG" in v*) ;; *) TAG="v$(node -p "require('./package.json').version")" ;; esac
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "Melanite $TAG" --notes "Instalador para Windows. La primera vez Windows avisa: Más información → Ejecutar de todas formas."
+          gh release upload "$TAG" release/*.exe release/*.blockmap release/latest.yml --clobber
