@@ -158,7 +158,7 @@ export class FileExplorerView extends ItemView {
   private fileMenu(file: TFile): Menu {
     const fm = this.app.fileManager;
     const ws = this.app.workspace;
-    return new Menu()
+    const menu = new Menu()
       .addItem((i) => i.setTitle(t('file.openNewTab')).setIcon('file-plus').onClick(() => ws.getLeaf('tab').openFile(file)))
       .addItem((i) => i.setTitle(t('file.openRight')).setIcon('columns-2').onClick(() => ws.getLeaf('split').openFile(file)))
       .addSeparator()
@@ -168,6 +168,8 @@ export class FileExplorerView extends ItemView {
       .addItem((i) => i.setTitle(t('file.copyPath')).setIcon('clipboard').onClick(() => navigator.clipboard?.writeText(file.path)))
       .addSeparator()
       .addItem((i) => i.setTitle(t('file.delete')).setIcon('trash').setWarning(true).onClick(() => fm.promptForDeletion(file)));
+    ws.trigger('file-menu', menu, file, 'file-explorer'); // los plugins agregan ítems (como en Obsidian)
+    return menu;
   }
 
   private folderMenu(folder: TFolder): Menu {

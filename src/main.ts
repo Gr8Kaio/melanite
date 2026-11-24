@@ -11,7 +11,7 @@ async function main() {
   const db = new MelaniteDB();
   const vault = await Vault.open(db);
   if (!(await db.kv.get('welcomed'))) {
-    if (!vault.getMarkdownFiles().length) await vault.create('Bienvenida.md', WELCOME_NOTE);
+    if (!vault.getMarkdownFiles().length) await vault.create('Welcome.md', WELCOME_NOTE);
     await db.kv.put({ key: 'welcomed', value: true });
   }
   const app = new App(vault);
@@ -22,7 +22,7 @@ async function main() {
 
 main().catch((err) => {
   console.error(err);
-  document.body.textContent = `Melanite no pudo arrancar: ${(err as Error).message}`;
+  document.body.textContent = `Melanite could not start: ${(err as Error).message}`;
 });
 
 registerSW({ immediate: true });

@@ -518,6 +518,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--interactive-acce
 .setting-item-control { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .setting-item.is-disabled { opacity: 0.5; }
 .setting-badge { font-size: var(--font-ui-smaller); padding: 2px 8px; border-radius: 999px; background: var(--background-modifier-hover); color: var(--text-muted); }
+.settings-apply-bar { display: none; align-items: center; gap: 8px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid var(--background-modifier-border); background: var(--background-secondary); flex-shrink: 0; }
+.settings-apply-bar.is-visible { display: flex; }
+.settings-apply-text { flex: 1; color: var(--text-muted); font-size: var(--font-ui-small); }
 .slider-value { min-width: 2em; text-align: right; color: var(--text-muted); }
 .checkbox-container { width: 40px; height: 22px; border-radius: 11px; background: var(--interactive-normal); border: 1px solid var(--background-modifier-border); position: relative; cursor: pointer; transition: background 0.15s; flex-shrink: 0; }
 .checkbox-container::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--text-muted); transition: transform 0.15s, background 0.15s; }

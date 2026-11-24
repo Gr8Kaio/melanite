@@ -4,7 +4,7 @@ App de notas Markdown local-first (PWA) inspirada en Obsidian, con plugins. Se u
 
 - Repo: `github.com/Gr8Kaio/melanite` · Deploy: `gr8kaio.github.io/melanite/` (base `/melanite/`)
 - Stack: TypeScript + Vite 8, **sin framework de UI** (DOM con helpers estilo Obsidian), CodeMirror 6, markdown-it, Dexie, KaTeX y Mermaid lazy, Lucide.
-- UI en español; todo texto visible pasa por `t()` (i18n preparada para inglés).
+- UI en **inglés por defecto** con español como opción (Ajustes → Appearance → Language). Todo texto visible pasa por `t()`; cada módulo registra sus claves en los dos idiomas (`registerStrings({ es, en })`), sin dejar claves solo en español.
 
 ## Comandos
 
@@ -100,7 +100,19 @@ UI compartida: `src/app/ui/` (`dom.ts` helpers `createEl/createDiv/empty/setText
 | graph, temas, import/export, PDF (fase 5) | a definir | — | pendiente |
 
 **Puntos de extensión compartidos** (se puede agregar, no modificar lo existente):
-- Textos: `registerStrings({ es, en })` desde tu módulo, con claves prefijadas por el módulo (`search.*`, `plugins.*`, `mobile.*`). No tocar `es.ts`/`en.ts`.
+- Textos: `registerStrings({ es, en })` desde tu módulo, con claves prefijadas por el módulo (`search.*`, `plugins.*`, `mobile.*`), completas en los dos idiomas. No tocar `es.ts`/`en.ts`. En tests e2e usá los textos en inglés o selectores que no dependan del idioma.
+- Ajustes del núcleo: se editan en un borrador y se aplican con el botón **Apply** (`views/settings.ts`). Las pestañas de plugins pueden aplicar al instante.
 - CSS: tu `<módulo>.css` (ya importado por tu `index.ts`). Usá las variables de `src/app/theme/app.css`; no redefinas las existentes.
 - Tests: `tests/unit/<módulo>.test.ts` y `tests/e2e/<módulo>.spec.ts`.
 - Si necesitás un cambio en un archivo del núcleo, hacé el mínimo (un hook, un evento, un método nuevo), explicalo en el resumen final y no reformatees el archivo.
+
+---
+
+## Cómo escribir un plugin
+
+- Partí de `sample-plugin/` (Pomodoro): `package.json` con esbuild, `tsconfig.json` que incluye `../melanite-api.d.ts`, `manifest.json`, `styles.css`.
+- `src/main.ts` exporta por defecto una clase que extiende `Plugin` (`import { Plugin, … } from 'melanite'`). Todo lo que registres con `addX/registerX` se limpia solo al desactivar; la configuración va con `loadData/saveData` (`.melanite/plugins/<id>/data.json`).
+- Build: esbuild en CommonJS con `melanite` y `@codemirror/*` como external (`npm run build`). El loader también acepta ESM.
+- Instalar: zip o release de GitHub desde Ajustes → Plugins de la comunidad (GitHub no deja bajar assets de releases con CORS; si falla, zip). Se guarda en `.melanite/plugins/<id>/` y se sincroniza.
+- Si cambia la API (`src/api/index.ts`): `npm run api:types` regenera `melanite-api.d.ts`. Los plugins internos usan la misma API desde `src/<módulo>/core-plugins/` y se registran con `app.plugins.registerCore`.
+- Plugins de ejemplo en la app: `npm run plugin:sample` recompila el Pomodoro y lo copia a `public/plugins/pomodoro/`.

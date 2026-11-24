@@ -1,9 +1,11 @@
 import type es from './es';
 
-const en: Partial<Record<keyof typeof es, string>> = {
+/** Completo a propósito: el inglés es el idioma por defecto (el tipo obliga a tener todas las claves). */
+const en: Record<keyof typeof es, string> = {
   'common.ok': 'OK',
   'common.cancel': 'Cancel',
   'common.close': 'Close',
+
   'cmd.newNote': 'New note',
   'cmd.newNoteTab': 'New note in new tab',
   'cmd.newFolder': 'New folder',
@@ -24,10 +26,13 @@ const en: Partial<Record<keyof typeof es, string>> = {
   'cmd.italic': 'Italic',
   'cmd.insertWikilink': 'Insert internal link',
   'cmd.toggleTask': 'Toggle task',
+
   'editor.placeholder': 'Start writing…',
   'embed.missing': '“{name}” does not exist yet',
+
   'explorer.title': 'Files',
   'explorer.collapseAll': 'Collapse all',
+
   'file.untitled': 'Untitled',
   'file.rename': 'Rename',
   'file.delete': 'Delete',
@@ -41,9 +46,11 @@ const en: Partial<Record<keyof typeof es, string>> = {
   'file.pastedImage': 'Pasted image',
   'file.confirmDelete': 'Move “{name}” to the trash?',
   'file.confirmDeleteFolder': 'Move the folder “{name}” and everything in it to the trash?',
+
   'notice.exists': '“{name}” already exists',
   'notice.invalidName': 'Names cannot contain / \\ : * ? " < > | # ^ [ ] or start with a dot',
   'notice.cannotOpen': 'Melanite cannot open “{name}”',
+
   'view.newTab': 'New tab',
   'view.noFile': 'No file',
   'view.more': 'More options',
@@ -53,7 +60,9 @@ const en: Partial<Record<keyof typeof es, string>> = {
   'view.readingMode': 'Reading view',
   'view.livePreview': 'Live preview',
   'view.sourceMode': 'Source mode',
+
   'status.count': '{words} words · {chars} characters',
+
   'settings.groupOptions': 'Options',
   'settings.groupPlugins': 'Plugins',
   'settings.editor': 'Editor',
@@ -61,15 +70,34 @@ const en: Partial<Record<keyof typeof es, string>> = {
   'settings.appearance': 'Appearance',
   'settings.about': 'About',
   'settings.defaultMode': 'Default view for notes',
+  'settings.defaultModeDesc': 'How notes open',
   'settings.readable': 'Readable line length',
+  'settings.readableDesc': 'Limit the text width so it is easier to read',
   'settings.spellcheck': 'Spellcheck',
   'settings.fontSize': 'Font size',
+  'settings.newLocation': 'Where to create new notes',
+  'settings.locRoot': 'Vault root',
+  'settings.locCurrent': 'Same folder as the current note',
+  'settings.locFolder': 'A specific folder',
+  'settings.newFolder': 'Folder for new notes',
+  'settings.attachments': 'Attachment folder',
+  'settings.attachmentsDesc': 'Where pasted images are saved. "./" = next to the note, "./attachments" = subfolder of the note',
+  'settings.confirmDelete': 'Confirm before deleting',
   'settings.theme': 'Theme',
   'settings.themeSystem': 'Follow system',
   'settings.themeLight': 'Light',
   'settings.themeDark': 'Dark',
   'settings.language': 'Language',
-  'settings.languageDesc': 'Some labels change after reopening the app',
+  'settings.languageDesc': 'The app reloads when you apply the change',
+  'settings.apply': 'Apply',
+  'settings.discard': 'Discard',
+  'settings.pending': 'You have unapplied changes',
+  'settings.unsavedTitle': 'Unapplied changes',
+  'settings.unsavedMsg': 'Do you want to apply the changes you made? Otherwise they will be discarded.',
   'settings.version': 'Version {v}',
+  'settings.storage': 'Local storage',
+  'settings.storageDesc': '{used} MB used on this device',
+  'settings.persisted': 'Persistent',
+  'settings.notPersisted': 'The browser may clear it',
 };
 export default en;

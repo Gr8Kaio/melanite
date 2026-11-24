@@ -1,5 +1,5 @@
 import type { App, AppSettings } from '../app';
-import { Modal } from '../ui/modal';
+import { Modal, confirmDialog } from '../ui/modal';
 import { Setting } from '../ui/setting';
 import { t } from '../i18n';
 
@@ -44,9 +44,42 @@ export class SettingsModal extends Modal {
         if (tab.id === this.initial || (!this.initial && !this.current)) this.openTab(tab, nav);
       }
     }
+    // barra "Apply": aparece cuando hay cambios pendientes en los ajustes del núcleo
+    this.applyBar = this.modalEl.createDiv('settings-apply-bar');
+    this.applyBar.createSpan({ cls: 'settings-apply-text', text: t('settings.pending') });
+    this.applyBar.createEl('button', { text: t('settings.discard') }).addEventListener('click', () => this.discard());
+    this.applyBar.createEl('button', { cls: 'mod-cta', text: t('settings.apply') }).addEventListener('click', () => void this.apply());
+    this.refreshBar = () => this.applyBar.toggleClass('is-visible', hasPending());
+    draftListeners.add(this.refreshBar);
+    this.refreshBar();
   }
 
-  onClose(): void { this.current?.hide(); }
+  private applyBar!: HTMLDivElement;
+  private refreshBar = () => {};
+
+  onClose(): void {
+    this.current?.hide();
+    draftListeners.delete(this.refreshBar);
+    if (!hasPending()) return;
+    void confirmDialog(this.app, { title: t('settings.unsavedTitle'), message: t('settings.unsavedMsg'), cta: t('settings.apply') })
+      .then((ok) => (ok ? applyDraft(this.app) : clearDraft()));
+  }
+
+  private async apply() {
+    await applyDraft(this.app);
+    this.rerender();
+  }
+
+  private discard() {
+    clearDraft();
+    this.rerender();
+  }
+
+  private rerender() {
+    const nav = this.navEl.querySelector<HTMLElement>('.vertical-tab-nav-item.is-active');
+    if (this.current && nav) this.openTab(this.current, nav);
+    this.refreshBar();
+  }
 
   private openTab(tab: SettingTab, nav: HTMLElement) {
     this.current?.hide();
@@ -62,11 +95,37 @@ export class SettingsModal extends Modal {
   }
 }
 
-/** Ajustes propios de la app, agrupados en pestañas. */
-function appTab(app: App, id: string, name: string, build: (el: HTMLElement, set: <K extends keyof AppSettings>(k: K, v: AppSettings[K]) => void) => void): SettingTab {
+// ---------------------------------------------------------------- borrador + Apply
+
+/** Cambios pendientes de los ajustes del núcleo (se aplican con el botón Apply). */
+const draft: Partial<AppSettings> = {};
+const draftListeners = new Set<() => void>();
+const hasPending = () => Object.keys(draft).length > 0;
+const notify = () => draftListeners.forEach((fn) => fn());
+function clearDraft() { for (const k of Object.keys(draft)) delete draft[k as keyof AppSettings]; notify(); }
+
+async function applyDraft(app: App): Promise<void> {
+  if (!hasPending()) return;
+  const langChanged = draft.language !== undefined && draft.language !== app.settings.language;
+  Object.assign(app.settings, draft);
+  clearDraft();
+  await app.saveSettings();
+  // los textos ya dibujados no se traducen solos: recargar es lo más simple y seguro
+  if (langChanged) location.reload();
+}
+
+type Setter = <K extends keyof AppSettings>(k: K, v: AppSettings[K]) => void;
+
+/** Pestaña de ajustes del núcleo: lee el borrador y escribe en él. */
+function appTab(app: App, id: string, name: string, build: (el: HTMLElement, s: AppSettings, set: Setter) => void): SettingTab {
   const tab = new (class extends SettingTab {
     display() {
-      build(this.containerEl, (k, v) => { app.settings[k] = v; void app.saveSettings(); });
+      const view = { ...app.settings, ...draft } as AppSettings;
+      build(this.containerEl, view, (k, v) => {
+        if (app.settings[k] === v) delete draft[k]; else draft[k] = v;
+        view[k] = v;
+        notify();
+      });
     }
   })(app);
   tab.id = id;
@@ -75,9 +134,8 @@ function appTab(app: App, id: string, name: string, build: (el: HTMLElement, set
 }
 
 export function coreSettingTabs(app: App): SettingTab[] {
-  const s = app.settings;
   return [
-    appTab(app, 'editor', t('settings.editor'), (el, set) => {
+    appTab(app, 'editor', t('settings.editor'), (el, s, set) => {
       new Setting(el).setName(t('settings.defaultMode')).setDesc(t('settings.defaultModeDesc')).addDropdown((d) => d
         .addOptions({ live: t('view.livePreview'), source: t('view.sourceMode'), reading: t('view.readingMode') })
         .setValue(s.defaultViewMode).onChange((v) => set('defaultViewMode', v as AppSettings['defaultViewMode'])));
@@ -87,7 +145,7 @@ export function coreSettingTabs(app: App): SettingTab[] {
       new Setting(el).setName(t('settings.fontSize')).addSlider((sl) => sl.setLimits(12, 24, 1).setValue(s.fontSize).setDynamicTooltip()
         .onChange((v) => set('fontSize', v)));
     }),
-    appTab(app, 'files', t('settings.files'), (el, set) => {
+    appTab(app, 'files', t('settings.files'), (el, s, set) => {
       new Setting(el).setName(t('settings.newLocation')).addDropdown((d) => d
         .addOptions({ root: t('settings.locRoot'), current: t('settings.locCurrent'), folder: t('settings.locFolder') })
         .setValue(s.newFileLocation).onChange((v) => { set('newFileLocation', v as AppSettings['newFileLocation']); folder.settingEl.toggle(v === 'folder'); }));
@@ -97,7 +155,7 @@ export function coreSettingTabs(app: App): SettingTab[] {
         .setPlaceholder('adjuntos').setValue(s.attachmentFolder).onChange((v) => set('attachmentFolder', v.trim())));
       new Setting(el).setName(t('settings.confirmDelete')).addToggle((tg) => tg.setValue(s.confirmDelete).onChange((v) => set('confirmDelete', v)));
     }),
-    appTab(app, 'appearance', t('settings.appearance'), (el, set) => {
+    appTab(app, 'appearance', t('settings.appearance'), (el, s, set) => {
       new Setting(el).setName(t('settings.theme')).addDropdown((d) => d
         .addOptions({ system: t('settings.themeSystem'), light: t('settings.themeLight'), dark: t('settings.themeDark') })
         .setValue(s.theme).onChange((v) => set('theme', v as AppSettings['theme'])));
