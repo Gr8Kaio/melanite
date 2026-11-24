@@ -201,12 +201,19 @@ export class App extends Events {
     try { return JSON.parse(await this.vault.cachedRead(file)) as T; } catch { return null; }
   }
 
-  async writeConfig(name: string, data: unknown): Promise<void> {
+  /** Escrituras en fila por archivo: dos writeConfig seguidos no crean el archivo dos veces. */
+  writeConfig(name: string, data: unknown): Promise<void> {
     const path = `${CONFIG_DIR}/${name}`;
     const text = JSON.stringify(data, null, 2);
-    const file = this.vault.getFileByPath(path);
-    if (file) await this.vault.modify(file, text); else await this.vault.create(path, text);
+    const run = async () => {
+      const file = this.vault.getFileByPath(path);
+      if (file) await this.vault.modify(file, text); else await this.vault.create(path, text);
+    };
+    const next = (this.configWrites.get(path) ?? Promise.resolve()).catch(() => {}).then(run);
+    this.configWrites.set(path, next);
+    return next;
   }
+  private configWrites = new Map<string, Promise<void>>();
 
   async loadSettings(): Promise<void> {
     this.settings = { ...DEFAULT_SETTINGS, ...((await this.readConfig<Partial<AppSettings>>('app.json')) ?? {}) };

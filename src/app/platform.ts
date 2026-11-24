@@ -1,4 +1,5 @@
-const phone = matchMedia('(max-width: 768px)');
+// angosto, o táctil y bajo (iPhone en horizontal mide más de 768 px de ancho)
+const phone = matchMedia('(max-width: 768px), (pointer: coarse) and (max-height: 500px)');
 const nav = navigator as Navigator & { standalone?: boolean };
 
 export const Platform = {

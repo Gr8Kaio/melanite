@@ -8,6 +8,7 @@ import { EmptyView, FileView, View, type ViewState } from './views/view';
 import { setIcon } from './ui/icons';
 import { Menu, Notice, onContextMenu } from './ui/modal';
 import { t } from './i18n';
+import { Platform } from './platform';
 
 /** 'vertical' = paneles lado a lado (como en Obsidian), 'horizontal' = uno arriba del otro. */
 export type SplitDirection = 'vertical' | 'horizontal';
@@ -72,7 +73,8 @@ export class WorkspaceLeaf extends Events {
       if (vs.state) await this.view.setState(vs.state);
       if (eState) (this.view as { setEphemeralState?: (s: Record<string, unknown>) => void }).setEphemeralState?.(eState);
       this.updateHeader();
-      if (vs.active) this.app.workspace.setActiveLeaf(this, { focus: true });
+      // en el teléfono enfocar el editor abre el teclado: solo se enfoca en escritorio
+      if (vs.active) this.app.workspace.setActiveLeaf(this, { focus: !Platform.isPhone });
       if (this.view instanceof FileView && this.app.workspace.getMostRecentLeaf() === this) this.app.workspace.trigger('file-open', this.view.file);
       this.app.workspace.requestSaveLayout();
     }).catch((err) => console.error('[melanite] setViewState', err));
