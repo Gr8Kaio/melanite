@@ -9,7 +9,11 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "api:types": "node scripts/api-types.mjs",
-    "plugin:sample": "npm --prefix sample-plugin run build && npm --prefix sample-plugin run copy-to-app"
+    "plugin:sample": "npm --prefix sample-plugin run build && npm --prefix sample-plugin run copy-to-app",
+    "build:desktop": "tsc --noEmit && vite build --mode desktop",
+    "desktop:dev": "npm run build:desktop && electron .",
+    "desktop:build": "npm run build:desktop && electron-builder --win --publish never",
+    "desktop:release": "npm run build:desktop && electron-builder --win --publish always"
   },
   "type": "module",
   "dependencies": {
@@ -25,6 +29,7 @@
     "@lezer/highlight": "^1.2.5",
     "@lezer/markdown": "^1.8.1",
     "dexie": "^4.4.7",
+    "electron-updater": "^6.8.11",
     "fflate": "^0.8.3",
     "katex": "^0.19.1",
     "lucide": "^1.79.0",
@@ -36,11 +41,54 @@
   "devDependencies": {
     "@playwright/test": "^1.65.1",
     "@types/markdown-it-footnote": "^3.0.4",
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0",
     "fake-indexeddb": "^6.2.8",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.1.1"
   },
-  "private": true
+  "private": true,
+  "main": "desktop/main.cjs",
+  "author": "Gr8Kaio",
+  "build": {
+    "appId": "com.gr8kaio.melanite",
+    "productName": "Melanite",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop/**",
+      "dist-desktop/**",
+      "package.json"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Gr8Kaio",
+        "repo": "melanite"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "desktop/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Melanite",
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "Melanite-Setup-${version}.exe"
+    }
+  }
 }
