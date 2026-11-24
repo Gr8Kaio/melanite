@@ -165,8 +165,10 @@ export function coreSettingTabs(app: App): SettingTab[] {
     appTab(app, 'about', t('settings.about'), (el) => {
       new Setting(el).setName('Melanite').setDesc(t('settings.version', { v: __APP_VERSION__ }));
       new Setting(el).setName(t('settings.storage')).then((st) => {
-        void navigator.storage?.estimate?.().then((e) => st.setDesc(t('settings.storageDesc', { used: ((e.usage ?? 0) / 1048576).toFixed(1) })));
-        void navigator.storage?.persisted?.().then((p) => st.controlEl.createSpan({ cls: 'setting-badge', text: p ? t('settings.persisted') : t('settings.notPersisted') }));
+        // ojo: Setting tiene then(); si un .then() de promesa lo devuelve, la promesa lo trata
+        // como thenable y entra en un bucle infinito (así se colgaba About). Siempre con llaves.
+        void navigator.storage?.estimate?.().then((e) => { st.setDesc(t('settings.storageDesc', { used: ((e.usage ?? 0) / 1048576).toFixed(1) })); });
+        void navigator.storage?.persisted?.().then((p) => { st.controlEl.createSpan({ cls: 'setting-badge', text: p ? t('settings.persisted') : t('settings.notPersisted') }); });
       });
     }),
   ];

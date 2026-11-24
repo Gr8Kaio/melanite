@@ -98,6 +98,7 @@ if (!app.requestSingleInstanceLock()) {
 
   app.whenReady().then(() => {
     protocol.handle('app', serve);
+    require('./folder.cjs').register(() => win);
     createWindow();
     if (app.isPackaged) require('./updater.cjs').start(() => win);
   });

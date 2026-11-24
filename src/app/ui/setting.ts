@@ -34,7 +34,13 @@ export class Setting {
   addSlider(cb: (c: SliderComponent) => unknown): this { cb(new SliderComponent(this.controlEl)); return this; }
   addButton(cb: (c: ButtonComponent) => unknown): this { cb(new ButtonComponent(this.controlEl)); return this; }
   addExtraButton(cb: (c: ExtraButtonComponent) => unknown): this { cb(new ExtraButtonComponent(this.controlEl)); return this; }
-  then(cb: (s: this) => unknown): this { cb(this); return this; }
+  then(cb: (s: this) => unknown, onRejected?: unknown): this {
+    // Si una promesa "adopta" un Setting (por devolverlo desde un .then()), la llama con
+    // (resolve, reject): resolver con `this` de nuevo sería un bucle infinito que congela la app.
+    if (typeof onRejected === 'function') { (cb as (v: unknown) => void)(undefined); return this; }
+    cb(this);
+    return this;
+  }
 }
 
 abstract class ValueComponent<T, E extends HTMLElement> {
