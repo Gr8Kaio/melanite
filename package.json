@@ -7,7 +7,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "api:types": "node scripts/api-types.mjs",
+    "plugin:sample": "npm --prefix sample-plugin run build && npm --prefix sample-plugin run copy-to-app"
   },
   "type": "module",
   "dependencies": {
@@ -23,6 +25,7 @@
     "@lezer/highlight": "^1.2.5",
     "@lezer/markdown": "^1.8.1",
     "dexie": "^4.4.7",
+    "fflate": "^0.8.3",
     "katex": "^0.19.1",
     "lucide": "^1.79.0",
     "markdown-it": "^15.0.3",

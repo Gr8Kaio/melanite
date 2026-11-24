@@ -104,21 +104,6 @@ export class App extends Events {
     document.addEventListener('keydown', this.commands.handleKeydown);
     this.darkQuery.addEventListener('change', () => this.applySettings());
 
-    // ponytail: el contador de palabras vive acá hasta que exista el plugin interno (fase 3)
-    const words = this.addStatusBarItem();
-    const updateCount = () => {
-      const md = this.getActiveMarkdownView();
-      if (!md) { words.setText(''); return; }
-      const sel = md.editor.getSelection();
-      const text = sel || md.getViewData();
-      const w = (text.match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu) ?? []).length;
-      words.setText(t('status.count', { words: w, chars: text.length }));
-    };
-    this.workspace.on('editor-change', updateCount);
-    this.workspace.on('editor-selection-change', updateCount);
-    this.workspace.on('active-leaf-change', updateCount);
-    this.workspace.on('file-open', updateCount);
-
     await this.workspace.loadLayout(async (ws) => {
       await ws.ensureSideLeaf(EXPLORER_VIEW, 'left');
       ws.rightSplit.setCollapsed(true);
