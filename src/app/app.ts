@@ -17,6 +17,7 @@ import { setLanguage, t } from './i18n';
 import { registerCoreCommands } from './core-commands';
 import { MetadataCache } from '../core/metadata';
 import { PluginManager } from '../plugins/manager';
+import { LatexSuggestPlugin, latexManifest } from './editor/latex-suggest';
 import { install as installLinks } from './links';
 import { install as installMobile } from './mobile';
 import { install as installPlugins } from '../plugins';
@@ -100,6 +101,7 @@ export class App extends Events {
     await installLinks(this);
     await installMobile(this);
     await installPlugins(this);
+    this.plugins.registerCore(latexManifest(), LatexSuggestPlugin);
     await this.plugins.loadCore();
     document.addEventListener('keydown', this.commands.handleKeydown);
     this.darkQuery.addEventListener('change', () => this.applySettings());

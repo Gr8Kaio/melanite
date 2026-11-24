@@ -110,6 +110,26 @@ function blockMath(cx: BlockContext, line: Line): boolean {
   return true;
 }
 
+const LIST_BEGIN = /^\\begin\{(itemize|enumerate|description)\}/;
+const LIST_END = /^\\end\{(itemize|enumerate|description)\}/;
+
+/** Bloque `\begin{itemize}` … `\end{itemize}` (anidable); el live preview lo muestra como lista. */
+function latexEnv(cx: BlockContext, line: Line): boolean {
+  if (!/^\\begin\{(itemize|enumerate|description)\}\s*$/.test(line.text.slice(line.pos))) return false;
+  const from = cx.lineStart + line.pos;
+  let end = from;
+  let depth = 0;
+  do {
+    const t = line.text.trim();
+    if (LIST_BEGIN.test(t)) depth++;
+    else if (LIST_END.test(t)) depth--;
+    end = cx.lineStart + line.text.length;
+    if (depth === 0) { cx.nextLine(); break; }
+  } while (cx.nextLine());
+  cx.addElement(cx.elt('LatexEnv', from, end));
+  return true;
+}
+
 export const melaniteSyntax: MarkdownConfig = {
   defineNodes: [
     { name: 'WikiLink', style: tags.link },
@@ -126,6 +146,7 @@ export const melaniteSyntax: MarkdownConfig = {
     { name: 'Tag', style: tags.labelName },
     { name: 'Frontmatter', block: true, style: tags.meta },
     { name: 'FrontmatterMark', style: tags.processingInstruction },
+    { name: 'LatexEnv', block: true, style: tags.special(tags.content) },
   ],
   parseInline: [
     { name: 'WikiLink', parse: wiki, before: 'Link' },
@@ -137,5 +158,6 @@ export const melaniteSyntax: MarkdownConfig = {
   parseBlock: [
     { name: 'Frontmatter', parse: frontmatter, before: 'FencedCode' },
     { name: 'BlockMath', parse: blockMath, before: 'FencedCode', endLeaf: (_cx, line) => line.text.slice(line.pos).startsWith('$$') },
+    { name: 'LatexEnv', parse: latexEnv, before: 'FencedCode', endLeaf: (_cx, line) => LIST_BEGIN.test(line.text.slice(line.pos)) },
   ],
 };

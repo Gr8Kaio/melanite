@@ -307,6 +307,10 @@ function build(state: EditorState, version: number): DecorationSet {
           block(n.from, n.to, new MathWidget(src.trim(), true));
           return false;
         }
+        case 'LatexEnv':
+          if (ctx && !rangeActive(n.from, n.to)) { block(n.from, n.to, new RenderedBlockWidget(ctx, text(n.from, n.to))); return false; }
+          lines(n.from, n.to, 'ml-math-src');
+          return false;
         case 'Table':
           if (ctx && !rangeActive(n.from, n.to)) { block(n.from, n.to, new RenderedBlockWidget(ctx, text(n.from, n.to))); return false; }
           lines(n.from, n.to, 'ml-table-src');

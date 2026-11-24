@@ -139,6 +139,82 @@ function taskRule(state: StateCore): void {
   }
 }
 
+// ---------------------------------------------------------------- listas estilo LaTeX (itemize / enumerate / description)
+
+const LIST_ENV = 'itemize|enumerate|description';
+const LIST_BEGIN_LINE = new RegExp(`^\\\\begin\\{(${LIST_ENV})\\}\\s*$`);
+const LIST_BEGIN = new RegExp(`^\\\\begin\\{(${LIST_ENV})\\}`);
+const LIST_END = new RegExp(`^\\\\end\\{(${LIST_ENV})\\}`);
+
+function latexListRule(state: StateBlock, startLine: number, endLine: number, silent: boolean): boolean {
+  const lineText = (n: number) => state.src.slice(state.bMarks[n] + state.tShift[n], state.eMarks[n]);
+  if (state.sCount[startLine] - state.blkIndent >= 4) return false;
+  if (!LIST_BEGIN_LINE.test(lineText(startLine))) return false;
+  if (silent) return true;
+  let depth = 0;
+  let last = endLine - 1;
+  for (let l = startLine; l < endLine; l++) {
+    const t = lineText(l).trim();
+    if (LIST_BEGIN.test(t)) depth++;
+    else if (LIST_END.test(t) && --depth === 0) { last = l; break; }
+  }
+  const lines: string[] = [];
+  for (let l = startLine; l <= last; l++) lines.push(lineText(l));
+  const tok = state.push('ml_latex_list', '', 0);
+  tok.block = true;
+  tok.content = lines.join('\n');
+  tok.map = [startLine, last + 1];
+  state.line = last + 1;
+  return true;
+}
+
+/** `\begin{itemize} \item …` → <ul><li>…; anida entornos y acepta `\item[etiqueta]`. */
+export function latexListToHtml(src: string, inline: (s: string) => string): string {
+  let html = '';
+  const stack: { env: string; open: boolean }[] = [];
+  const openTag = (env: string) => (env === 'enumerate' ? '<ol>' : env === 'description' ? '<dl>' : '<ul>');
+  const closeTag = (env: string) => (env === 'enumerate' ? '</ol>' : env === 'description' ? '</dl>' : '</ul>');
+  const closeItem = () => {
+    const top = stack[stack.length - 1];
+    if (top?.open) { html += top.env === 'description' ? '</dd>' : '</li>'; top.open = false; }
+  };
+  const ensureItem = (top: { env: string; open: boolean }) => {
+    if (!top.open) { html += top.env === 'description' ? '<dd>' : '<li>'; top.open = true; }
+  };
+  for (const raw of src.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    const b = LIST_BEGIN.exec(line);
+    if (b) {
+      const parent = stack[stack.length - 1];
+      if (parent) ensureItem(parent);
+      html += openTag(b[1]);
+      stack.push({ env: b[1], open: false });
+      continue;
+    }
+    if (LIST_END.test(line)) {
+      closeItem();
+      const top = stack.pop();
+      if (top) html += closeTag(top.env);
+      continue;
+    }
+    const top = stack[stack.length - 1];
+    if (!top) continue;
+    const item = /^\\item(?:\[([^\]]*)\])?\s*(.*)$/.exec(line);
+    if (item) {
+      closeItem();
+      if (top.env === 'description') html += `<dt>${inline(item[1] ?? '')}</dt>`;
+      ensureItem(top);
+      html += inline(item[2]);
+    } else {
+      ensureItem(top);
+      html += ` ${inline(line)}`;
+    }
+  }
+  while (stack.length) { closeItem(); html += closeTag(stack.pop()!.env); }
+  return `<div class="latex-list">${html}</div>\n`;
+}
+
 /** "300" → ancho, "300x200" → ancho y alto (sintaxis de tamaño de imágenes de Obsidian). */
 export function parseSize(alias: string): { width?: string; height?: string } | null {
   const m = /^(\d+)(?:x(\d+))?$/.exec(alias.trim());
@@ -153,6 +229,7 @@ md.inline.ruler.before('emphasis', 'ml_highlight', delimitedRule('==', true));
 md.inline.ruler.before('emphasis', 'ml_comment', delimitedRule('%%', false));
 md.inline.ruler.push('ml_tag', tagRule);
 md.block.ruler.before('fence', 'ml_math_block', blockMathRule, { alt: ['paragraph', 'reference', 'blockquote', 'list'] });
+md.block.ruler.before('fence', 'ml_latex_list', latexListRule, { alt: ['paragraph', 'reference', 'blockquote', 'list'] });
 md.core.ruler.after('inline', 'ml_tasks', taskRule);
 
 const r = md.renderer.rules as Record<string, RendererRule>;
@@ -178,6 +255,7 @@ r.ml_math = (toks, i) => {
   const tag = t.block ? 'div' : 'span';
   return `<${tag} class="math ${display ? 'math-block' : 'math-inline'}" data-tex="${esc(t.content)}"></${tag}>${t.block ? '\n' : ''}`;
 };
+r.ml_latex_list = (toks, i) => latexListToHtml(toks[i].content, (s) => md.renderInline(s));
 r.ml_tag = (toks, i) => `<a class="tag" data-tag="${esc(toks[i].content)}" href="#${esc(toks[i].content)}">#${esc(toks[i].content)}</a>`;
 r.ml_task = (toks, i) => {
   const t = toks[i];
