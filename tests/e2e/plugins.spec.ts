@@ -27,7 +27,7 @@ test('activar y desactivar un plugin interno limpia lo que registró', async ({ 
   await expect(page.locator('.plugin-word-count')).toContainText(/\d+ \S+ · \d+/);
   await openSettings(page, 'core-plugins');
   const pane = page.locator('.vertical-tab-content');
-  await expect(pane.locator('.plugin-core-item')).toHaveCount(4);
+  await expect(pane.locator('.plugin-core-item')).toHaveCount(await page.evaluate(() => (window as any).app.plugins.core.size));
   await shot(page, 'internos');
 
   // word-count: el ítem de la barra de estado desaparece y vuelve
