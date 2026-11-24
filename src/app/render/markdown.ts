@@ -231,6 +231,12 @@ md.inline.ruler.push('ml_tag', tagRule);
 md.block.ruler.before('fence', 'ml_math_block', blockMathRule, { alt: ['paragraph', 'reference', 'blockquote', 'list'] });
 md.block.ruler.before('fence', 'ml_latex_list', latexListRule, { alt: ['paragraph', 'reference', 'blockquote', 'list'] });
 md.core.ruler.after('inline', 'ml_tasks', taskRule);
+// línea de origen de cada bloque de primer nivel (para alinear la vista previa con el editor)
+md.core.ruler.push('ml_lines', (state) => {
+  for (const tok of state.tokens) {
+    if (tok.map && tok.level === 0 && tok.nesting === 1) tok.attrSet('data-line', String(tok.map[0]));
+  }
+});
 
 const r = md.renderer.rules as Record<string, RendererRule>;
 r.ml_wikilink = (toks, i) => {

@@ -35,6 +35,8 @@ export function registerCoreCommands(app: App): void {
 
   add({ id: 'markdown:toggle-preview', name: t('cmd.togglePreview'), icon: 'book-open', hotkeys: [{ modifiers: ['Mod'], key: 'e' }],
     checkCallback: (checking) => { const v = ws.getActiveViewOfType(MarkdownView); if (v && !checking) v.toggleMode(); return !!v; } });
+  add({ id: 'markdown:toggle-split', name: t('cmd.toggleSplit'), icon: 'columns-2', hotkeys: [{ modifiers: ['Mod', 'Alt'], key: 'e' }],
+    checkCallback: (checking) => { const v = ws.getActiveViewOfType(MarkdownView); if (v && !checking) v.toggleSplit(); return !!v; } });
   add({ id: 'markdown:toggle-source', name: t('cmd.toggleSource'), icon: 'code',
     checkCallback: (checking) => { const v = ws.getActiveViewOfType(MarkdownView); if (v && !checking) v.toggleSourceMode(); return !!v && v.mode === 'source'; } });
 

@@ -306,6 +306,14 @@ input:focus, textarea:focus, select:focus { border-color: var(--interactive-acce
 .markdown-view { overflow: hidden; display: flex; flex-direction: column; }
 .markdown-source-view, .markdown-reading-view { flex: 1; min-height: 0; }
 .markdown-reading-view { overflow: auto; }
+/* lado a lado: editor (código) | vista previa; en el teléfono, uno arriba del otro */
+.markdown-view.is-split { flex-direction: row; }
+.markdown-view.is-split > .markdown-source-view, .markdown-view.is-split > .markdown-reading-view { flex: 1 1 0; min-width: 0; }
+.markdown-view.is-split > .markdown-reading-view { border-left: 1px solid var(--background-modifier-border); background: var(--background-primary); }
+.is-mobile .markdown-view.is-split { flex-direction: column; }
+.is-mobile .view-action.mod-split { display: none; } /* en el teléfono: desde el menú ⋮ o la paleta */
+.is-mobile .markdown-view.is-split > .markdown-reading-view { border-left: none; border-top: 1px solid var(--background-modifier-border); }
+.view-action.is-active { color: var(--text-accent); background: var(--background-modifier-active-hover); }
 .markdown-source-view .cm-editor { height: 100%; background: var(--background-primary); }
 .cm-editor.cm-focused { outline: none; }
 .markdown-source-view .cm-editor .cm-scroller {

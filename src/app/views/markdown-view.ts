@@ -12,7 +12,8 @@ import type { Menu } from '../ui/modal';
 import { setIcon } from '../ui/icons';
 import { t } from '../i18n';
 
-export type MarkdownMode = 'source' | 'preview';
+/** 'source' = editando, 'preview' = lectura, 'split' = editor y vista previa lado a lado (como Overleaf) */
+export type MarkdownMode = 'source' | 'preview' | 'split';
 const SAVE_DELAY = 400;
 
 export class MarkdownView extends FileView {
@@ -31,6 +32,8 @@ export class MarkdownView extends FileView {
   private dirty = false;
   private lastSaved: string | null = null;
   private modeButton: HTMLElement;
+  private splitButton: HTMLElement;
+  private splitTimer = 0;
 
   constructor(leaf: WorkspaceLeaf) {
     super(leaf);
@@ -41,10 +44,14 @@ export class MarkdownView extends FileView {
     this.cm = new EditorView({ parent: this.sourceEl, state: this.newState('') });
     this.editor = new Editor(this.cm);
     const s = this.app.settings;
-    this.mode = s.defaultViewMode === 'reading' ? 'preview' : 'source';
+    this.mode = s.defaultViewMode === 'reading' ? 'preview' : s.defaultViewMode === 'split' ? 'split' : 'source';
     this.sourceMode = s.defaultViewMode === 'source';
 
+    this.splitButton = this.addAction('columns-2', t('view.splitMode'), () => this.toggleSplit());
+    this.splitButton.addClass('mod-split');
     this.modeButton = this.addAction('book-open', t('view.toggleMode'), () => this.toggleMode());
+    // lado a lado: la vista previa sigue el scroll del editor
+    this.cm.scrollDOM.addEventListener('scroll', () => { if (this.mode === 'split') this.syncPreviewScroll(); }, { passive: true });
     this.titleEl.addEventListener('click', () => { if (this.file) void this.app.fileManager.promptForRename(this.file); });
 
     // links internos dentro del modo lectura y de bloques renderizados del editor
@@ -68,7 +75,7 @@ export class MarkdownView extends FileView {
   }
 
   async setState(state: ViewState): Promise<void> {
-    if (state.mode === 'source' || state.mode === 'preview') this.mode = state.mode;
+    if (state.mode === 'source' || state.mode === 'preview' || state.mode === 'split') this.mode = state.mode;
     if (typeof state.source === 'boolean') this.sourceMode = state.source;
     await super.setState(state);
     this.applyMode();
@@ -84,10 +91,10 @@ export class MarkdownView extends FileView {
   setViewData(data: string, clear: boolean): void {
     if (clear) this.cm.setState(this.newState(data));
     else this.replaceDoc(data);
-    if (this.mode === 'preview') void this.renderReading();
+    if (this.mode !== 'source') void this.renderReading();
   }
 
-  focus(): void { if (this.mode === 'source') this.cm.focus(); }
+  focus(): void { if (this.mode !== 'preview') this.cm.focus(); }
 
   async onOpen(): Promise<void> {
     this.registerEvent(this.app.vault.on('modify', (f: TFile) => {
@@ -96,6 +103,7 @@ export class MarkdownView extends FileView {
       // el eco de nuestro propio guardado llega tarde (IndexedDB es async): si mientras tanto se siguió escribiendo, no pisarlo
       if (text !== this.getViewData() && text !== this.lastSaved) this.replaceDoc(text);
       if (this.mode === 'preview') void this.renderReading();
+      else if (this.mode === 'split') this.scheduleSplitRender();
     }));
     const refresh = () => this.cm.dispatch({ effects: refreshLivePreview.of(null) });
     this.registerEvent(this.app.vault.on('create', refresh));
@@ -126,6 +134,7 @@ export class MarkdownView extends FileView {
   onPaneMenu(menu: Menu): void {
     const file = this.file;
     menu.addItem((i) => i.setTitle(this.mode === 'preview' ? t('view.editMode') : t('view.readingMode')).setIcon(this.mode === 'preview' ? 'pencil' : 'book-open').onClick(() => this.toggleMode()));
+    menu.addItem((i) => i.setTitle(t('view.splitMode')).setIcon('columns-2').setChecked(this.mode === 'split').onClick(() => this.toggleSplit()));
     if (this.mode === 'source') {
       menu.addItem((i) => i.setTitle(this.sourceMode ? t('view.livePreview') : t('view.sourceMode')).setIcon('code').onClick(() => this.toggleSourceMode()));
     }
@@ -146,6 +155,14 @@ export class MarkdownView extends FileView {
     if (this.mode === 'source') this.cm.focus();
   }
 
+  /** Editor a la izquierda y vista previa a la derecha (en el teléfono, uno arriba del otro). */
+  toggleSplit(): void {
+    this.mode = this.mode === 'split' ? 'source' : 'split';
+    this.applyMode();
+    this.app.workspace.requestSaveLayout();
+    this.cm.focus();
+  }
+
   toggleSourceMode(): void {
     this.sourceMode = !this.sourceMode;
     this.cm.dispatch({ effects: modeCompartment.reconfigure(this.sourceMode ? [] : livePreview()) });
@@ -154,13 +171,17 @@ export class MarkdownView extends FileView {
 
   private applyMode(): void {
     const reading = this.mode === 'preview';
+    const split = this.mode === 'split';
     this.sourceEl.toggle(!reading);
-    this.readingEl.toggle(reading);
+    this.readingEl.toggle(reading || split);
+    this.contentEl.toggleClass('is-split', split);
     this.contentEl.toggleClass('is-readable-line-width', this.app.settings.readableLineLength);
-    this.cm.dispatch({ effects: modeCompartment.reconfigure(this.sourceMode ? [] : livePreview()) });
+    // lado a lado: el editor muestra el código tal cual (la vista previa ya está al costado)
+    this.cm.dispatch({ effects: modeCompartment.reconfigure(this.sourceMode || split ? [] : livePreview()) });
     setIcon(this.modeButton, reading ? 'pencil' : 'book-open');
     this.modeButton.setAttr('aria-label', reading ? t('view.editMode') : t('view.readingMode'));
-    if (reading) void this.renderReading();
+    this.splitButton.toggleClass('is-active', split);
+    if (reading || split) void this.renderReading();
   }
 
   private async renderReading(): Promise<void> {
@@ -172,7 +193,43 @@ export class MarkdownView extends FileView {
     await MarkdownRenderer.render(this.app, this.getViewData(), el, this.file.path, this.renderChild);
     this.renderedEl.empty();
     this.renderedEl.appendChild(el);
-    this.readingEl.scrollTop = scroll;
+    if (this.mode === 'split') this.syncPreviewScroll();
+    else this.readingEl.scrollTop = scroll;
+  }
+
+  private scheduleSplitRender(): void {
+    clearTimeout(this.splitTimer);
+    this.splitTimer = window.setTimeout(() => void this.renderReading(), 250);
+  }
+
+  /**
+   * Lleva la vista previa a la misma altura que el editor: busca los bloques renderizados
+   * de la línea de arriba de todo (data-line) e interpola entre ellos.
+   */
+  private syncPreviewScroll(): void {
+    const root = this.renderedEl.querySelector<HTMLElement>('[data-line-offset]');
+    if (!root) return;
+    const scroller = this.cm.scrollDOM;
+    if (scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2) {
+      this.readingEl.scrollTop = this.readingEl.scrollHeight; // al final del documento, al final de la vista previa
+      return;
+    }
+    const top = this.cm.lineBlockAtHeight(scroller.scrollTop);
+    const line = this.cm.state.doc.lineAt(top.from).number - 1 - Number(root.dataset.lineOffset ?? 0);
+    const blocks = Array.from(root.querySelectorAll<HTMLElement>(':scope > [data-line]'));
+    if (!blocks.length) return;
+    let i = 0;
+    while (i + 1 < blocks.length && Number(blocks[i + 1].dataset.line) <= line) i++;
+    const a = blocks[i], b = blocks[i + 1];
+    const base = this.readingEl.getBoundingClientRect().top - this.readingEl.scrollTop;
+    const ya = a.getBoundingClientRect().top - base;
+    let y = ya;
+    if (b) {
+      const la = Number(a.dataset.line), lb = Number(b.dataset.line);
+      const frac = lb > la ? Math.min(1, Math.max(0, (line - la) / (lb - la))) : 0;
+      y = ya + frac * (b.getBoundingClientRect().top - base - ya);
+    }
+    this.readingEl.scrollTop = Math.max(0, y - 16);
   }
 
   private reconfigure(): void {
@@ -217,6 +274,7 @@ export class MarkdownView extends FileView {
         EditorView.updateListener.of((u) => {
           if (u.docChanged) {
             this.requestSave();
+            if (this.mode === 'split') this.scheduleSplitRender();
             this.app.workspace.trigger('editor-change', this.editor, this);
           } else if (u.selectionSet) this.app.workspace.trigger('editor-selection-change', this.editor, this);
         }),

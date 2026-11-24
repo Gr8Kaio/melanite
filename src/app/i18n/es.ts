@@ -57,6 +57,8 @@ const es = {
   'view.readingMode': 'Modo lectura',
   'view.livePreview': 'Live preview',
   'view.sourceMode': 'Modo fuente',
+  'view.splitMode': 'Lado a lado (editor + vista previa)',
+  'cmd.toggleSplit': 'Alternar lado a lado (editor + vista previa)',
 
   'status.count': '{words} palabras · {chars} caracteres',
 

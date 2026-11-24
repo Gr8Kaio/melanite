@@ -170,7 +170,7 @@ export function coreSettingTabs(app: App): SettingTab[] {
   return [
     appTab(app, 'editor', t('settings.editor'), (el, s, set) => {
       new Setting(el).setName(t('settings.defaultMode')).setDesc(t('settings.defaultModeDesc')).addDropdown((d) => d
-        .addOptions({ live: t('view.livePreview'), source: t('view.sourceMode'), reading: t('view.readingMode') })
+        .addOptions({ live: t('view.livePreview'), source: t('view.sourceMode'), reading: t('view.readingMode'), split: t('view.splitMode') })
         .setValue(s.defaultViewMode).onChange((v) => set('defaultViewMode', v as AppSettings['defaultViewMode'])));
       new Setting(el).setName(t('settings.readable')).setDesc(t('settings.readableDesc')).addToggle((tg) => tg
         .setValue(s.readableLineLength).onChange((v) => set('readableLineLength', v)));

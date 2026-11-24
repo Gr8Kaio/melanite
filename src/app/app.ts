@@ -28,7 +28,7 @@ import { createSync, resumeSync, type SyncEngine } from '../core/sync';
 export interface AppSettings {
   theme: 'system' | 'light' | 'dark';
   language: 'es' | 'en';
-  defaultViewMode: 'live' | 'source' | 'reading';
+  defaultViewMode: 'live' | 'source' | 'reading' | 'split';
   readableLineLength: boolean;
   spellcheck: boolean;
   fontSize: number;

@@ -60,6 +60,8 @@ const en: Record<keyof typeof es, string> = {
   'view.readingMode': 'Reading view',
   'view.livePreview': 'Live preview',
   'view.sourceMode': 'Source mode',
+  'view.splitMode': 'Side by side (editor + preview)',
+  'cmd.toggleSplit': 'Toggle side by side (editor + preview)',
 
   'status.count': '{words} words · {chars} characters',
 
