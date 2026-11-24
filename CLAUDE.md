@@ -43,7 +43,7 @@ Antes de dar algo por terminado: `npx tsc --noEmit`, `npm test`, `npm run build`
   - `.melanite/hotkeys.json` — `{ commandId: Hotkey[] }` atajos personalizados
   - `.melanite/snippets/*.css` — CSS snippets del usuario
   - `.trash/` — papelera (borrar = mover acá; vaciar = borrado definitivo)
-- Lo que es **por dispositivo** (no va al vault): layout del workspace (`localStorage['melanite:layout']`), carpetas expandidas, estado de sync.
+- Lo que es **por dispositivo** (no va al vault): layout del workspace (`localStorage['melanite:layout']`), carpetas expandidas, estado de sync (Dexie `kv`), sesión de Supabase (`localStorage['melanite-auth']`).
 - Adjuntos: binarios en la tabla `blobs` (ArrayBuffer, no Blob: Safari). Carpeta según `settings.attachmentFolder` (`adjuntos`, `./`, `./sub`).
 
 ## Contrato 2 — Núcleo y API interna
@@ -77,14 +77,39 @@ UI compartida: `src/app/ui/` (`dom.ts` helpers `createEl/createDiv/empty/setText
 - `manifest.json`: `{ id, name, version, minAppVersion?, description?, author?, authorUrl?, isDesktopOnly? }`. El id es `[a-z0-9-]+` y coincide con la carpeta.
 - **Plugins internos:** usan exactamente esta API (sin atajos privados) y se registran desde el `install(app)` de su módulo con `app.plugins.registerCore(manifest, Clase)`. Viven en `src/<módulo>/core-plugins/<id>.ts`.
 
-## Contrato 4 — Interfaz de sync (la implementa el dueño de sync, en forma secuencial)
+## Contrato 4 — Sync (`src/core/sync/`, `src/core/db.ts`, `supabase/`)
 
-- **Toda escritura pasa por `app.vault`.** Ningún módulo escribe en Dexie directo. La sync se engancha en el vault.
-- El esquema Dexie (`src/core/db.ts`) es **del módulo sync**. Los demás no lo cambian. Sync va a agregar en `version(2)`: `files.{baseVersion, baseHash, dirty, deleted}`, tabla `syncQueue`, `kv.lastSeq`.
-- Identidad de archivo = `id` (uuid) estable; renombrar = cambiar `path` del mismo id. No crear/borrar para "mover".
-- El vault va a ganar `applyRemote(row)`, que escribe sin marcar `dirty` y emite los mismos eventos (`create/modify/rename/delete`). Las vistas ya reaccionan a `modify` reemplazando el texto con diff mínimo (`MarkdownView.replaceDoc`); no rompan eso.
-- Conflictos: si cambió local y remoto desde el último sync, gana el remoto en el archivo y lo local se guarda como `nombre (conflicto AAAA-MM-DD).md`. Nunca se pierde texto.
-- Supabase (fase 4): tabla `files(id uuid pk, user_id, path, kind, content, storage_key, hash, version, deleted, seq, updated_at, device_id)` con RLS por `auth.uid()`, RPC `push_file` con compare-and-swap sobre `version`, pull por `seq > lastSeq`, Realtime solo como aviso. Adjuntos en Storage `attachments/{user_id}/{id}`.
+**Reglas para todos los módulos**
+- **Toda escritura pasa por `app.vault`.** Ningún módulo escribe en Dexie directo (el esquema es del módulo sync). Cada escritura local marca la fila `dirty`; `vault.delete` deja un tombstone (vaciar la papelera = baja en el servidor).
+- Identidad = `id` (uuid) estable; renombrar/mover = cambiar `path` del mismo id (`vault.rename`). Nunca crear+borrar para "mover".
+- El vault actualiza la memoria y emite el evento **en el mismo tick** en que lanza la escritura a IndexedDB (después espera). `vault.applyRemote(change, guard)` escribe lo que llega del servidor sin marcar `dirty` y emite los mismos eventos `create/modify/rename/delete`; las vistas reaccionan a `modify` con `MarkdownView.replaceDoc`. No rompan eso.
+- Todo `.melanite/` se sincroniza (no hay nada por dispositivo ahí; lo por dispositivo va en `localStorage`). Un cambio remoto en un archivo de config llega como `modify`: si tu módulo cachea su config, escuchá ese evento.
+
+**Interfaz para la UI: `app.sync` (`SyncEngine`, `src/core/sync/engine.ts`)**
+```ts
+import { getSupabaseClient } from '../core/sync';           // Promise<SupabaseClient | null> (null si el build no tiene VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY); sesión persistente en localStorage ('melanite-auth')
+await app.sync.start(client);   // cliente ya autenticado; arranca y sincroniza en segundo plano
+await app.sync.stop();          // al cerrar sesión (lo pendiente queda guardado)
+await app.sync.syncNow();       // una ronda ya; nunca rechaza (los errores van al estado)
+app.sync.state                  // { enabled, status: 'idle'|'syncing'|'offline'|'error', pending, lastSync: ms|null, lastError: string|null }
+app.sync.on('status', (s: SyncState) => …)      // cada cambio de estado
+app.sync.conflicts              // SyncConflict[] de esta sesión: { kind: 'edit'|'rename'|'path', path, copyPath?, localPath?, time }
+app.sync.on('conflict', (c: SyncConflict) => …) // además el módulo ya muestra un Notice (claves sync.*)
+```
+- Al arrancar la app, si hay una sesión guardada la sync se retoma sola (`resumeSync` en `src/core/sync/index.ts`); con `SIGNED_OUT` se para. Cambiar de cuenta en el mismo dispositivo = las notas locales se mezclan con la cuenta nueva como en un primer login.
+- Rondas: pull → push → bajar adjuntos. Se disparan por cambios locales (1,5 s), aviso de Realtime, `online`, `visibilitychange` y cada 60 s.
+
+**Cómo funciona**
+- Servidor (`supabase/schema.sql`): tabla `files` con clave `(user_id, id)`, índice único parcial `(user_id, path) where not deleted`, RLS de solo lectura; **toda escritura va por la RPC `push_file`** (compare-and-swap sobre `version`, `seq` nuevo de una secuencia, un push a la vez por usuario con un advisory lock para que `seq` se confirme en orden). Respuestas: `ok`, `conflict` (otra versión) o `path_taken` (otra fila viva tiene la ruta). El pull trae `seq > lastSeq` en orden (nunca `updated_at`). Realtime solo dispara un pull.
+- Local (Dexie v2): `files.{dirty, baseVersion, baseHash, basePath, blobKey}`, tabla `tombstones`, `kv['sync.lastSeq' | 'sync.deviceId' | 'sync.userId']`. `dirty` es un sello creciente: se limpia solo si el servidor confirmó y no hubo otra escritura local en el medio. Hashes SHA-256 (`crypto.subtle`).
+- Adjuntos: Storage privado `attachments`, claves `{user_id}/{id}/{hash}` (por contenido: reintentar una subida es idempotente y un CAS fallido no pisa la versión de otro). El binario baja después de aplicar la fila; mientras tanto el archivo existe con el contenido anterior (o vacío).
+- Decisiones (funciones puras en `src/core/sync/decide.ts`, comparando contra la base):
+  - editado en los dos lados con hashes distintos → el archivo queda con lo remoto y lo local va a `nombre (conflict AAAA-MM-DD).md` (en español "conflicto"; numerada si existe). Hashes iguales no son conflicto.
+  - borrado contra edición → gana la edición (se resucita). Carpeta borrada en remoto con algo adentro → la carpeta se resucita; cada archivo se rige por su propia fila.
+  - renombrado contra edición → se aplican los dos. Renombrado en los dos lados → gana el remoto y se avisa.
+  - dos ids con la misma ruta (dos dispositivos, primer login): carpeta nunca subida → se unifican (toma el id remoto); archivo nunca subido con el mismo contenido → se unifica; si no → lo local se aparta con el sufijo de conflicto.
+  - `.melanite/` (config, `data.json` de plugins): un conflicto de contenido **no genera copia, gana lo remoto** (en el primer login gana la nube: así un dispositivo nuevo o viejo no pisa la config buena con la suya). Si el plugin vuelve a guardar, ese guardado sube normalmente.
+  - el editor con texto sin guardar se guarda (`flushEditors`) antes de decidir; si mientras tanto se siguió escribiendo, la fila se reintenta.
 
 ---
 
@@ -96,7 +121,7 @@ UI compartida: `src/app/ui/` (`dom.ts` helpers `createEl/createDiv/empty/setText
 | **links** (fase 2) | `src/app/links/` | `install()` en `src/app/links/index.ts` | pendiente |
 | **plugins** (fase 3) | `src/plugins/`, `src/api/`, `sample-plugin/` | `install()` en `src/plugins/index.ts` | base hecha (`api/plugin.ts`, `plugins/manager.ts`) |
 | **mobile** (cliente iPhone) | `src/app/mobile/` | `install()` en `src/app/mobile/index.ts` | pendiente |
-| sync (fase 4, secuencial) | `src/core/sync/`, `src/core/db.ts`, `supabase/` | — | pendiente |
+| sync (fase 4) | `src/core/sync/`, `src/core/db.ts`, `supabase/` | `app.sync` (`createSync`/`resumeSync` en `src/core/sync/index.ts`) | motor hecho; falta la UI de login |
 | graph, temas, import/export, PDF (fase 5) | a definir | — | pendiente |
 
 **Puntos de extensión compartidos** (se puede agregar, no modificar lo existente):

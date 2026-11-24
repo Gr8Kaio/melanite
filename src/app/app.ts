@@ -21,6 +21,7 @@ import { LatexSuggestPlugin, latexManifest } from './editor/latex-suggest';
 import { install as installLinks } from './links';
 import { install as installMobile } from './mobile';
 import { install as installPlugins } from '../plugins';
+import { createSync, resumeSync, type SyncEngine } from '../core/sync';
 
 export interface AppSettings {
   theme: 'system' | 'light' | 'dark';
@@ -62,6 +63,8 @@ export class App extends Events {
   workspace: Workspace;
   commands: Commands;
   fileManager: FileManager;
+  /** sincronización con Supabase (ver CLAUDE.md, contrato 4) */
+  sync: SyncEngine;
   markdown = new MarkdownRegistry();
   settings: AppSettings = { ...DEFAULT_SETTINGS };
   viewRegistry = new Map<string, ViewCreator>();
@@ -83,6 +86,7 @@ export class App extends Events {
     this.workspace = new Workspace(this);
     this.commands = new Commands(this);
     this.fileManager = new FileManager(this);
+    this.sync = createSync(this);
   }
 
   // ---------------------------------------------------------------- arranque
@@ -114,6 +118,7 @@ export class App extends Events {
     });
     if (!this.workspace.getLeavesOfType(EXPLORER_VIEW).length) await this.workspace.ensureSideLeaf(EXPLORER_VIEW, 'left');
     if (Platform.isPhone) { this.workspace.leftSplit.collapse(); this.workspace.rightSplit.collapse(); }
+    resumeSync(this).catch((err) => console.warn('[melanite] sync:', err));
   }
 
   private buildShell(root: HTMLElement) {
