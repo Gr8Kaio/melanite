@@ -2,6 +2,7 @@ import type { App, AppSettings } from '../app';
 import { Modal, confirmDialog } from '../ui/modal';
 import { Setting } from '../ui/setting';
 import { t } from '../i18n';
+import { checkForUpdates, desktopUpdates, installUpdate } from '../updates';
 
 /** Pestaña de ajustes (la app y los plugins agregan las suyas). */
 export abstract class SettingTab {
@@ -96,6 +97,37 @@ export class SettingsModal extends Modal {
   }
 }
 
+// ---------------------------------------------------------------- actualizaciones (About)
+
+function updatesSetting(el: HTMLElement): void {
+  const row = new Setting(el).setName(t('settings.updates')).setDesc(t('settings.updatesIdle'));
+  let installBtn: HTMLButtonElement | null = null;
+  const showInstall = (version: string) => {
+    row.setDesc(t('settings.updatesReady', { v: version }));
+    if (installBtn) return;
+    row.addButton((b) => { installBtn = b.buttonEl; b.setButtonText(t('settings.updatesInstall')).setCta().onClick(() => void installUpdate()); });
+  };
+  const desktop = desktopUpdates();
+  if (desktop) {
+    // los listeners viven mientras la fila esté en pantalla
+    const offProgress = desktop.onProgress((p) => { row.setDesc(t('settings.updatesProgress', { p })); });
+    const offDone = desktop.onDownloaded((v) => { showInstall(v); });
+    const stop = new MutationObserver(() => { if (!row.settingEl.isConnected) { offProgress(); offDone(); stop.disconnect(); } });
+    stop.observe(document.body, { childList: true, subtree: true });
+  }
+  row.addButton((b) => b.setButtonText(t('settings.updatesCheck')).onClick(async () => {
+    b.setDisabled(true);
+    row.setDesc(t('settings.updatesChecking'));
+    const r = await checkForUpdates();
+    b.setDisabled(false);
+    if (r.status === 'latest') { row.setDesc(t('settings.updatesLatest', { v: r.version })); }
+    else if (r.status === 'downloading') { row.setDesc(r.version ? t('settings.updatesDownloading', { v: r.version }) : t('settings.updatesWeb')); }
+    else if (r.status === 'downloaded') { showInstall(r.version); }
+    else if (r.status === 'unsupported') { row.setDesc(t('settings.updatesUnsupported')); }
+    else { row.setDesc(t('settings.updatesError', { msg: r.message })); }
+  }));
+}
+
 // ---------------------------------------------------------------- borrador + Apply
 
 /** Cambios pendientes de los ajustes del núcleo (se aplican con el botón Apply). */
@@ -165,6 +197,7 @@ export function coreSettingTabs(app: App): SettingTab[] {
     }),
     appTab(app, 'about', t('settings.about'), (el) => {
       new Setting(el).setName('Melanite').setDesc(t('settings.version', { v: __APP_VERSION__ }));
+      updatesSetting(el);
       new Setting(el).setName(t('settings.storage')).then((st) => {
         // ojo: Setting tiene then(); si un .then() de promesa lo devuelve, la promesa lo trata
         // como thenable y entra en un bucle infinito (así se colgaba About). Siempre con llaves.

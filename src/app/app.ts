@@ -21,6 +21,7 @@ import { LatexSuggestPlugin, latexManifest } from './editor/latex-suggest';
 import { install as installLinks } from './links';
 import { install as installMobile } from './mobile';
 import { install as installAccount } from './account';
+import { install as installDesktop } from './desktop';
 import { install as installPlugins } from '../plugins';
 import { createSync, resumeSync, type SyncEngine } from '../core/sync';
 
@@ -106,6 +107,7 @@ export class App extends Events {
     await installLinks(this);
     await installMobile(this);
     installAccount(this);
+    installDesktop(this);
     await installPlugins(this);
     this.plugins.registerCore(latexManifest(), LatexSuggestPlugin);
     await this.plugins.loadCore();

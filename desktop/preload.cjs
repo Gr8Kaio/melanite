@@ -1,8 +1,20 @@
 // Preload: expone solo lo necesario. El acceso al disco se limita a la carpeta del vault (ver folder.cjs).
 const { contextBridge, ipcRenderer } = require('electron');
 
+const on = (channel) => (cb) => {
+  const listener = (_e, value) => cb(value);
+  ipcRenderer.on(channel, listener);
+  return () => ipcRenderer.removeListener(channel, listener);
+};
+
 contextBridge.exposeInMainWorld('melaniteDesktop', {
   platform: process.platform,
+  updates: {
+    check: () => ipcRenderer.invoke('update:check'),
+    install: () => ipcRenderer.invoke('update:install'),
+    onProgress: on('update:progress'),
+    onDownloaded: on('update:downloaded'),
+  },
   folder: {
     get: () => ipcRenderer.invoke('folder:get'),
     choose: () => ipcRenderer.invoke('folder:choose'),

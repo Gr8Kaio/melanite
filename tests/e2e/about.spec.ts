@@ -9,4 +9,10 @@ test('abrir About no congela la app', async ({ page }) => {
   const answer = await Promise.race([page.evaluate(() => 1 + 1), new Promise((r) => setTimeout(() => r('colgada'), 5000))]);
   expect(answer).toBe(2);
   await expect(page.locator('.setting-badge')).toBeVisible();
+
+  // buscar actualizaciones: en la web responde con el service worker
+  const row = page.locator('.setting-item', { hasText: 'Updates' });
+  await row.locator('button', { hasText: 'Check for updates' }).click();
+  await expect(row.locator('.setting-item-description')).toHaveText(/latest version|new version|cannot check/);
+  await page.screenshot({ path: `test-results/about-${test.info().project.name}.png` });
 });

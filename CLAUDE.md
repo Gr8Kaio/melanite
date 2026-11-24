@@ -121,7 +121,10 @@ app.sync.on('conflict', (c: SyncConflict) => …) // además el módulo ya muest
 | **links** (fase 2) | `src/app/links/` | `install()` en `src/app/links/index.ts` | pendiente |
 | **plugins** (fase 3) | `src/plugins/`, `src/api/`, `sample-plugin/` | `install()` en `src/plugins/index.ts` | base hecha (`api/plugin.ts`, `plugins/manager.ts`) |
 | **mobile** (cliente iPhone) | `src/app/mobile/` | `install()` en `src/app/mobile/index.ts` | pendiente |
-| sync (fase 4) | `src/core/sync/`, `src/core/db.ts`, `supabase/` | `app.sync` (`createSync`/`resumeSync` en `src/core/sync/index.ts`) | motor hecho; falta la UI de login |
+| sync (fase 4) | `src/core/sync/`, `src/core/db.ts`, `supabase/` | `app.sync` (`createSync`/`resumeSync` en `src/core/sync/index.ts`) | hecho |
+| cuenta / login | `src/app/account/` | `install()` | hecho (pestaña Sync, OTP sin magic links) |
+| escritorio (Electron) | `desktop/`, `src/app/desktop/` | `install()` (no hace nada fuera de Electron) | instalador NSIS + updater; **vault como carpeta real**: espejo en los dos sentidos (`folder-mirror.ts`), el disco solo se toca desde `desktop/folder.cjs` y dentro de la carpeta elegida; borrar = papelera de Windows; los ecos de nuestras propias escrituras se ignoran por hash |
+| actualizaciones | `src/app/updates.ts` | Ajustes → About | escritorio: electron-updater (IPC `update:*`); web: `registration.update()` del service worker |
 | graph, temas, import/export, PDF (fase 5) | a definir | — | pendiente |
 
 **Puntos de extensión compartidos** (se puede agregar, no modificar lo existente):

@@ -84,6 +84,9 @@ async function statRel(rel) {
 
 function register(winGetter) {
   getWin = winGetter;
+  // MELANITE_VAULT_DIR: fija la carpeta sin el diálogo (lo usan los tests de escritorio)
+  const fromEnv = process.env.MELANITE_VAULT_DIR;
+  if (fromEnv && fs.existsSync(fromEnv)) saveRoot(fromEnv);
   root = loadRoot();
   startWatch();
 

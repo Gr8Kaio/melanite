@@ -100,7 +100,7 @@ if (!app.requestSingleInstanceLock()) {
     protocol.handle('app', serve);
     require('./folder.cjs').register(() => win);
     createWindow();
-    if (app.isPackaged) require('./updater.cjs').start(() => win);
+    require('./updater.cjs').register(() => win);
   });
   app.on('window-all-closed', () => app.quit());
 }
