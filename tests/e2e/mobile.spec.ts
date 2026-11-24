@@ -7,7 +7,7 @@ const doc = (page: Page) => page.evaluate(() => (window as any).app.getActiveMar
 
 async function ready(page: Page) {
   await page.goto('./');
-  await expect(page.locator('.cm-content')).toContainText('Bienvenida');
+  await expect(page.locator('.cm-content')).toContainText('Welcome');
 }
 
 /** Desliza con TouchEvents reales (Playwright no tiene swipe). `ms` entre pasos controla la velocidad. */
@@ -38,17 +38,17 @@ const right = (page: Page) => page.locator('.workspace-sidedock.mod-right');
 test('una sola barra con título y acciones de la vista', async ({ page }) => {
   await ready(page);
   const bar = page.locator('.mobile-navbar');
-  await expect(bar.locator('.mobile-navbar-title')).toHaveText('Bienvenida');
+  await expect(bar.locator('.mobile-navbar-title')).toHaveText('Welcome');
   await expect(page.locator('.mod-root .view-header').filter({ visible: true })).toHaveCount(0);
-  await expect(bar.locator('.view-action[aria-label="Más opciones"]')).toBeVisible();
+  await expect(bar.locator('.view-action[aria-label="More options"]')).toBeVisible();
   await shot(page, 'barra');
   // alternar lectura desde la barra
-  await bar.locator('.view-action[aria-label="Modo lectura"]').click();
-  await expect(page.locator('.markdown-preview-view h1')).toHaveText('Bienvenida a Melanite');
-  await expect(bar.locator('.view-action[aria-label="Editar"]')).toBeVisible();
+  await bar.locator('.view-action[aria-label="Reading view"]').click();
+  await expect(page.locator('.markdown-preview-view h1')).toHaveText('Welcome to Melanite');
+  await expect(bar.locator('.view-action[aria-label="Edit"]')).toBeVisible();
   // cambiar de nota: la barra sigue a la vista activa
-  await bar.locator('.mobile-navbar-action[aria-label="Nueva nota"]').click();
-  await expect(bar.locator('.mobile-navbar-title')).toHaveText('Sin título');
+  await bar.locator('.mobile-navbar-action[aria-label="New note"]').click();
+  await expect(bar.locator('.mobile-navbar-title')).toHaveText('Untitled');
   await expect(bar.locator('.view-actions')).toHaveCount(1);
   // tocar el título = renombrar
   await bar.locator('.mobile-navbar-title').click();
@@ -86,27 +86,27 @@ test('drawers con gesto desde los bordes', async ({ page }) => {
 test('toolbar sobre el teclado modifica el texto', async ({ page }) => {
   await ready(page);
   await expect(page.locator('.mobile-toolbar')).toBeHidden();
-  await page.locator('.mobile-navbar-action[aria-label="Nueva nota"]').click();
+  await page.locator('.mobile-navbar-action[aria-label="New note"]').click();
   await page.locator('.cm-content').filter({ visible: true }).click();
   const bar = page.locator('.mobile-toolbar');
   await expect(bar).toBeVisible();
   const btn = (label: string) => bar.locator(`.mobile-toolbar-button[aria-label="${label}"]`);
-  await expect(btn('Negrita')).toHaveCSS('height', '44px');
-  await btn('Negrita').click();
+  await expect(btn('Bold')).toHaveCSS('height', '44px');
+  await btn('Bold').click();
   await page.keyboard.type('x');
   expect(await doc(page)).toBe('**x**');
-  await btn('Alternar tarea').click();
+  await btn('Toggle task').click();
   expect(await doc(page)).toBe('- [ ] **x**');
   await page.keyboard.press('End');
-  await btn('Insertar link interno').click();
+  await btn('Insert internal link').click();
   await page.keyboard.type('Otra');
   expect(await doc(page)).toBe('- [ ] **x**[[Otra]]');
   await page.waitForTimeout(600); // que el historial no agrupe el encabezado con lo tipeado
-  await btn('Encabezado').click();
+  await btn('Heading').click();
   expect(await doc(page)).toBe('# - [ ] **x**[[Otra]]');
-  await btn('Deshacer').click();
+  await btn('Undo').click();
   expect(await doc(page)).toBe('- [ ] **x**[[Otra]]');
-  await btn('Rehacer').click();
+  await btn('Redo').click();
   expect(await doc(page)).toBe('# - [ ] **x**[[Otra]]');
   // el editor sigue con foco después de tocar los botones
   expect(await page.evaluate(() => (window as any).app.getActiveMarkdownView().cm.hasFocus)).toBe(true);
@@ -126,19 +126,19 @@ test('toolbar sobre el teclado modifica el texto', async ({ page }) => {
   await shot(page, 'toolbar');
 
   // adjuntar: hoja con Fotos, Cámara, Archivos
-  await btn('Adjuntar archivo').click();
+  await btn('Attach file').click();
   const sheet = page.locator('.modal.mobile-sheet');
-  await expect(sheet.locator('.mobile-sheet-option')).toHaveText(['Fotos', 'Cámara', 'Archivos']);
+  await expect(sheet.locator('.mobile-sheet-option')).toHaveText(['Photos', 'Camera', 'Files']);
   const modalBox = await sheet.boundingBox();
   expect(modalBox!.y + modalBox!.height).toBeLessThanOrEqual(541); // por encima del teclado
   const chooser = page.waitForEvent('filechooser');
-  await sheet.locator('.mobile-sheet-option', { hasText: 'Fotos' }).click();
+  await sheet.locator('.mobile-sheet-option', { hasText: 'Photos' }).click();
   await (await chooser).setFiles({ name: 'foto.png', mimeType: 'image/png', buffer: Buffer.from('89504e470d0a1a0a', 'hex') });
   await expect.poll(() => doc(page)).toContain('![[foto.png]]');
 
   // ocultar teclado
   await page.locator('.cm-content').filter({ visible: true }).click();
-  await btn('Ocultar teclado').click();
+  await btn('Hide keyboard').click();
   await expect(bar).toBeHidden();
 });
 
@@ -151,15 +151,15 @@ test('selector de pestañas', async ({ page }) => {
   await expect(sheet.locator('.mobile-tab-item')).toHaveCount(1);
   await sheet.locator('.mobile-tab-new').click();
   await expect(tabsBtn).toHaveText('2');
-  await expect(page.locator('.mobile-navbar-title')).toHaveText('Pestaña nueva');
+  await expect(page.locator('.mobile-navbar-title')).toHaveText('New tab');
   await tabsBtn.click();
-  await expect(sheet.locator('.mobile-tab-item')).toHaveText(['Bienvenida', 'Pestaña nueva']);
+  await expect(sheet.locator('.mobile-tab-item')).toHaveText(['Welcome', 'New tab']);
   await shot(page, 'pestanas');
-  await sheet.locator('.mobile-tab-item', { hasText: 'Bienvenida' }).click();
+  await sheet.locator('.mobile-tab-item', { hasText: 'Welcome' }).click();
   await expect(sheet).toHaveCount(0);
-  await expect(page.locator('.mobile-navbar-title')).toHaveText('Bienvenida');
+  await expect(page.locator('.mobile-navbar-title')).toHaveText('Welcome');
   await tabsBtn.click();
-  await sheet.locator('.mobile-tab-item', { hasText: 'Pestaña nueva' }).locator('.mobile-tab-item-close').click();
+  await sheet.locator('.mobile-tab-item', { hasText: 'New tab' }).locator('.mobile-tab-item-close').click();
   await expect(sheet.locator('.mobile-tab-item')).toHaveCount(1);
   await expect(tabsBtn).toHaveText('1');
 });

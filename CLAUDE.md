@@ -4,7 +4,7 @@ App de notas Markdown local-first (PWA) inspirada en Obsidian, con plugins. Se u
 
 - Repo: `github.com/Gr8Kaio/melanite` · Deploy: `gr8kaio.github.io/melanite/` (base `/melanite/`)
 - Stack: TypeScript + Vite 8, **sin framework de UI** (DOM con helpers estilo Obsidian), CodeMirror 6, markdown-it, Dexie, KaTeX y Mermaid lazy, Lucide.
-- UI en español; todo texto visible pasa por `t()` (i18n preparada para inglés).
+- UI en **inglés por defecto** con español como opción (Ajustes → Appearance → Language). Todo texto visible pasa por `t()`; cada módulo registra sus claves en los dos idiomas (`registerStrings({ es, en })`), sin dejar claves solo en español.
 
 ## Comandos
 
@@ -100,7 +100,8 @@ UI compartida: `src/app/ui/` (`dom.ts` helpers `createEl/createDiv/empty/setText
 | graph, temas, import/export, PDF (fase 5) | a definir | — | pendiente |
 
 **Puntos de extensión compartidos** (se puede agregar, no modificar lo existente):
-- Textos: `registerStrings({ es, en })` desde tu módulo, con claves prefijadas por el módulo (`search.*`, `plugins.*`, `mobile.*`). No tocar `es.ts`/`en.ts`.
+- Textos: `registerStrings({ es, en })` desde tu módulo, con claves prefijadas por el módulo (`search.*`, `plugins.*`, `mobile.*`), completas en los dos idiomas. No tocar `es.ts`/`en.ts`. En tests e2e usá los textos en inglés o selectores que no dependan del idioma.
+- Ajustes del núcleo: se editan en un borrador y se aplican con el botón **Apply** (`views/settings.ts`). Las pestañas de plugins pueden aplicar al instante.
 - CSS: tu `<módulo>.css` (ya importado por tu `index.ts`). Usá las variables de `src/app/theme/app.css`; no redefinas las existentes.
 - Tests: `tests/unit/<módulo>.test.ts` y `tests/e2e/<módulo>.spec.ts`.
 - Si necesitás un cambio en un archivo del núcleo, hacé el mínimo (un hook, un evento, un método nuevo), explicalo en el resumen final y no reformatees el archivo.

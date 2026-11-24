@@ -36,14 +36,14 @@ export interface AppSettings {
 
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
-  language: 'es',
+  language: 'en',
   defaultViewMode: 'live',
   readableLineLength: true,
   spellcheck: true,
   fontSize: 16,
   newFileLocation: 'root',
   newFileFolder: '',
-  attachmentFolder: 'adjuntos',
+  attachmentFolder: 'attachments',
   confirmDelete: true,
 };
 

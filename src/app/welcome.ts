@@ -1,26 +1,26 @@
 export const WELCOME_NOTE = String.raw`---
 tags: [melanite]
 ---
-# Bienvenida a Melanite
+# Welcome to Melanite
 
-Melanite guarda tus notas **en este dispositivo** y funciona sin conexión. Escribí en Markdown: la sintaxis se oculta salvo en la línea donde está el cursor.
+Melanite keeps your notes **on this device** and works offline. Write in Markdown: the syntax hides except on the line where your cursor is.
 
-## Lo básico
+## The basics
 
-- **Negrita**, *cursiva*, ~~tachado~~, ==resaltado== y \`código\`
-- Links a otras notas: [[Una nota nueva]] (si no existe, se crea al tocarla)
-- Links con alias: [[Bienvenida#Lo básico|volver arriba]]
-- Tags: #ideas #facu
-- [Links normales](https://es.wikipedia.org/wiki/Melanita)
+- **Bold**, *italic*, ~~strikethrough~~, ==highlight== and \`code\`
+- Links to other notes: [[A new note]] (tap it and it gets created)
+- Links with an alias: [[Welcome#The basics|back to the top]]
+- Tags: #ideas #study
+- [Regular links](https://en.wikipedia.org/wiki/Melanite)
 
-## Tareas
+## Tasks
 
-- [ ] Una tarea pendiente
-- [x] Una tarea hecha
+- [ ] Something to do
+- [x] Something done
 
-## Matemática
+## Math
 
-En línea: $e^{i\pi} + 1 = 0$, y en bloque:
+Inline: $e^{i\pi} + 1 = 0$, and as a block:
 
 $$
 \begin{align*}
@@ -31,37 +31,37 @@ $$
 
 ## Callouts
 
-> [!tip] Atajos
-> **Ctrl+E** alterna entre edición y lectura. **Ctrl+N** crea una nota.
+> [!tip] Shortcuts
+> **Ctrl+E** toggles editing and reading. **Ctrl+N** creates a note.
 
-> [!warning]- Plegable
-> Este callout arranca cerrado.
+> [!warning]- Foldable
+> This callout starts collapsed.
 
-## Tablas
+## Tables
 
-| Atajo | Acción |
+| Shortcut | Action |
 | --- | --- |
-| Ctrl+E | Modo lectura |
-| Ctrl+\\ | Sidebar izquierda |
+| Ctrl+E | Reading view |
+| Ctrl+\\ | Left sidebar |
 
-## Diagramas
+## Diagrams
 
 \`\`\`mermaid
 graph LR
-  A[Idea] --> B[Nota]
+  A[Idea] --> B[Note]
   B --> C[[Link]]
   C --> A
 \`\`\`
 
-## Código
+## Code
 
 \`\`\`ts
-function saludar(nombre: string) {
-  return \`Hola, \${nombre}\`;
+function greet(name: string) {
+  return \`Hello, \${name}\`;
 }
 \`\`\`
 
-Las notas al pie también funcionan.[^1]
+Footnotes work too.[^1]
 
-[^1]: Como esta.
+[^1]: Like this one.
 `.replace(/\\`/g, '`').replace(/\\\$/g, '$');

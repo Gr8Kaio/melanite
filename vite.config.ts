@@ -12,8 +12,8 @@ export default defineConfig({
       manifest: {
         name: 'Melanite',
         short_name: 'Melanite',
-        description: 'Notas en Markdown, local-first, con plugins',
-        lang: 'es',
+        description: 'Local-first Markdown notes with plugins',
+        lang: 'en',
         start_url: './',
         scope: './',
         display: 'standalone',
