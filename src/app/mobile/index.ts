@@ -11,6 +11,7 @@ import './mobile.css';
 registerStrings({
   es: {
     'mobile.tabs': 'Pestañas',
+    'mobile.palette': 'Paleta de comandos',
     'mobile.tabsCount': '{n} pestañas abiertas',
     'mobile.toolbar': 'Formato',
     'mobile.undo': 'Deshacer',
@@ -30,6 +31,7 @@ registerStrings({
   },
   en: {
     'mobile.tabs': 'Tabs',
+    'mobile.palette': 'Command palette',
     'mobile.tabsCount': '{n} open tabs',
     'mobile.toolbar': 'Formatting',
     'mobile.undo': 'Undo',
@@ -84,7 +86,12 @@ function installNavbar(app: App, navbar: HTMLElement): void {
   const tabsBtn = createDiv({ cls: 'clickable-icon mobile-navbar-action mobile-tabs-button', attr: { role: 'button' } });
   const tabsCount = tabsBtn.createSpan('mobile-tabs-count');
   tabsBtn.addEventListener('click', () => openTabSwitcher(app));
+  // sin ribbon en el teléfono: acceso directo a la paleta de comandos (desde ahí, búsqueda y quick switcher)
+  const paletteBtn = createDiv({ cls: 'clickable-icon mobile-navbar-action mobile-palette-button', attr: { role: 'button', 'aria-label': t('mobile.palette') } });
+  setIcon(paletteBtn, 'command');
+  paletteBtn.addEventListener('click', () => app.commands.executeCommandById('command-palette:open'));
   navbar.insertBefore(slot, newNote ?? null);
+  navbar.insertBefore(paletteBtn, newNote ?? null);
   navbar.insertBefore(tabsBtn, newNote ?? null);
   title.setAttr('role', 'button');
   title.addEventListener('click', () => {

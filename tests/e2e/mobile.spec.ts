@@ -175,3 +175,11 @@ test('ajustes desde el drawer y targets de 44 px', async ({ page }) => {
   expect(nav!.height).toBeGreaterThanOrEqual(44);
   await shot(page, 'ajustes');
 });
+
+test('botón de la paleta de comandos en la barra', async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1000) > 768, 'solo en el teléfono');
+  await page.goto('./');
+  await expect(page.locator('.cm-content')).toContainText('Welcome');
+  await page.locator('.mobile-palette-button').click();
+  await expect(page.locator('.modal input').first()).toBeVisible();
+});

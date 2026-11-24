@@ -57,7 +57,9 @@ test('nota diaria, plantillas y marcadores', async ({ page }) => {
   await boot(page);
   await page.evaluate(() => (window as any).app.vault.create('plantillas/Reunión.md', '## {{title}} · {{date:YYYY}}\n- '));
   await run(page, 'daily-notes:open-today');
-  await expect(page.locator('.view-header-title').filter({ visible: true })).toHaveText(today());
+  // en el teléfono el título va en la barra única de arriba
+  const title = (page.viewportSize()?.width ?? 1000) <= 768 ? page.locator('.mobile-navbar-title') : page.locator('.view-header-title').filter({ visible: true });
+  await expect(title).toHaveText(today());
 
   await run(page, 'templates:insert');
   await page.locator('.mod-pick .suggestion-item', { hasText: 'Reunión' }).click();
