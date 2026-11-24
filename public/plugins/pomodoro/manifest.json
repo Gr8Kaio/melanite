@@ -1,0 +1,9 @@
+{
+  "id": "pomodoro",
+  "name": "Pomodoro",
+  "version": "1.0.0",
+  "minAppVersion": "0.1.0",
+  "description": "Bloques de trabajo con etiqueta y descansos; cada bloque terminado se anota en la nota diaria.",
+  "author": "Melanite",
+  "isDesktopOnly": false
+}

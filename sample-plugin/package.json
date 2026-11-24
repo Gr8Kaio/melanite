@@ -1,0 +1,15 @@
+{
+  "name": "melanite-pomodoro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plugin de ejemplo para Melanite (y template para plugins nuevos)",
+  "scripts": {
+    "build": "tsc --noEmit && esbuild src/main.ts --bundle --format=cjs --platform=browser --target=es2020 --external:melanite --external:@codemirror/* --outfile=main.js",
+    "dev": "esbuild src/main.ts --bundle --format=cjs --platform=browser --target=es2020 --external:melanite --external:@codemirror/* --outfile=main.js --watch",
+    "copy-to-app": "node -e \"for (const f of ['main.js','manifest.json','styles.css']) require('fs').copyFileSync(f, '../public/plugins/pomodoro/' + f)\""
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
+}

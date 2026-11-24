@@ -4,7 +4,6 @@ import type { App, ViewCreator } from '../app/app';
 import type { Command } from '../app/commands';
 import type { MarkdownPostProcessor, CodeBlockProcessor } from '../app/render/renderer';
 import { SettingTab } from '../app/views/settings';
-import { CONFIG_DIR } from '../app/app';
 
 export interface PluginManifest {
   id: string;
@@ -85,7 +84,13 @@ export abstract class Plugin extends Component {
 
   /** Datos del plugin en .melanite/plugins/<id>/data.json (se sincroniza con el vault). */
   async loadData(): Promise<any> { return this.app.readConfig(`plugins/${this.manifest.id}/data.json`); }
-  async saveData(data: unknown): Promise<void> { await this.app.writeConfig(`plugins/${this.manifest.id}/data.json`, data); }
+  /** Las escrituras van en fila: dos saveData seguidos sin await no crean el archivo dos veces. */
+  saveData(data: unknown): Promise<void> {
+    const snapshot = JSON.parse(JSON.stringify(data ?? null));
+    this._saving = this._saving.catch(() => {}).then(() => this.app.writeConfig(`plugins/${this.manifest.id}/data.json`, snapshot));
+    return this._saving;
+  }
+  private _saving: Promise<void> = Promise.resolve();
 }
 
 export abstract class PluginSettingTab extends SettingTab {
@@ -96,4 +101,5 @@ export abstract class PluginSettingTab extends SettingTab {
   }
 }
 
-export const PLUGINS_DIR = `${CONFIG_DIR}/plugins`;
+// literal (no CONFIG_DIR): app.ts importa el gestor, que importa este archivo; un import de valor haría un ciclo
+export const PLUGINS_DIR = '.melanite/plugins';
