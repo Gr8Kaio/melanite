@@ -1,0 +1,50 @@
+/* ---------------------------------------------------------------- pestaña Sync */
+.account-body { max-width: 460px; }
+.account-hint { color: var(--text-muted); font-size: var(--font-ui-small); line-height: 1.5; margin: 0 0 12px; }
+.account-help { margin-top: 16px; font-size: var(--font-ui-smaller); color: var(--text-faint); }
+.account-modes { display: flex; gap: 4px; padding: 3px; margin-bottom: 14px; background: var(--background-secondary); border-radius: var(--radius-m); }
+.account-modes button { flex: 1; border: none; background: transparent; box-shadow: none; color: var(--text-muted); }
+.account-modes button.is-active { background: var(--background-primary); color: var(--text-normal); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18); }
+.account-form { display: flex; flex-direction: column; gap: 12px; }
+.account-field { display: flex; flex-direction: column; gap: 4px; }
+.account-field label { color: var(--text-muted); font-size: var(--font-ui-smaller); }
+.account-field input { width: 100%; box-sizing: border-box; }
+.account-field input[name='code'] { font-family: var(--font-monospace); font-size: 1.25em; letter-spacing: 0.25em; }
+.account-field input[name='code']::placeholder { letter-spacing: normal; font-family: var(--font-interface); font-size: var(--font-ui-small); }
+.account-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.account-error { color: var(--text-error); font-size: var(--font-ui-small); line-height: 1.4; }
+.account-error:empty { display: none; }
+.account-form button.account-link { align-self: flex-start; border: none; background: none; box-shadow: none; padding: 2px 0; color: var(--text-accent); }
+.account-form button.account-link:hover { color: var(--text-accent-hover); text-decoration: underline; }
+.account-value { color: var(--text-muted); }
+.account-badge { display: inline-flex; align-items: center; gap: 6px; }
+.account-badge-icon { display: inline-flex; }
+.account-badge-icon .svg-icon { width: 16px; height: 16px; }
+.account-badge.is-error { color: var(--text-error); }
+.account-badge.is-offline { color: var(--text-muted); }
+.account-badge.is-syncing .svg-icon { animation: account-spin 1s linear infinite; }
+.account-error-row .setting-item-description { color: var(--text-error); word-break: break-word; }
+.account-conflict .setting-item-name { word-break: break-all; }
+.account-conflict .setting-item-description { word-break: break-all; }
+
+/* ---------------------------------------------------------------- indicador */
+.account-indicator { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); }
+.account-indicator .svg-icon { width: 14px; height: 14px; }
+.account-indicator.is-off { color: var(--text-faint); }
+.account-indicator[data-status='error'] { color: var(--text-error); }
+.account-indicator[data-status='syncing'] .svg-icon { animation: account-spin 1s linear infinite; }
+.account-indicator:hover { color: var(--text-normal); }
+.mobile-navbar-action.account-indicator .svg-icon { width: 18px; height: 18px; }
+@keyframes account-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .account-badge.is-syncing .svg-icon, .account-indicator[data-status='syncing'] .svg-icon { animation-duration: 3s; } }
+
+/* ---------------------------------------------------------------- mobile */
+.is-mobile .account-field input,
+.is-mobile .account-modes button,
+.is-mobile .account-actions button,
+.is-mobile .account-form button { min-height: var(--touch-target); font-size: 16px; }
+.is-mobile .account-form button.account-link { min-height: var(--touch-target); }
+.is-mobile .account-body { max-width: none; }
+.is-mobile .account-actions button { flex: 1; }
+/* los botones de la fila de ajustes (Sincronizar / Cerrar sesión) */
+.is-mobile .vertical-tab-content .setting-item-control button { min-height: var(--touch-target); }
