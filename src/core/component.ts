@@ -9,11 +9,13 @@ export class Component {
   private _children: Component[] = [];
   private _cleanups: (() => unknown)[] = [];
 
-  load(): void {
+  /** Devuelve lo que devuelva onload (los plugins pueden cargar en forma async). */
+  load(): void | Promise<void> {
     if (this._loaded) return;
     this._loaded = true;
-    this.onload();
-    for (const c of this._children) c.load();
+    const r = this.onload();
+    for (const c of this._children) void c.load();
+    return r;
   }
 
   unload(): void {
@@ -26,12 +28,12 @@ export class Component {
     this.onunload();
   }
 
-  onload(): void {}
+  onload(): void | Promise<void> {}
   onunload(): void {}
 
   addChild<T extends Component>(c: T): T {
     this._children.push(c);
-    if (this._loaded) c.load();
+    if (this._loaded) void c.load();
     return c;
   }
 

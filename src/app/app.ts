@@ -15,6 +15,11 @@ import { setIcon } from './ui/icons';
 import { Platform } from './platform';
 import { setLanguage, t } from './i18n';
 import { registerCoreCommands } from './core-commands';
+import { MetadataCache } from '../core/metadata';
+import { PluginManager } from '../plugins/manager';
+import { install as installLinks } from './links';
+import { install as installMobile } from './mobile';
+import { install as installPlugins } from '../plugins';
 
 export interface AppSettings {
   theme: 'system' | 'light' | 'dark';
@@ -51,6 +56,8 @@ export type ViewCreator = (leaf: WorkspaceLeaf) => View;
  */
 export class App extends Events {
   vault: Vault;
+  metadataCache: MetadataCache;
+  plugins: PluginManager;
   workspace: Workspace;
   commands: Commands;
   fileManager: FileManager;
@@ -70,6 +77,8 @@ export class App extends Events {
   constructor(vault: Vault) {
     super();
     this.vault = vault;
+    this.metadataCache = new MetadataCache(vault);
+    this.plugins = new PluginManager(this);
     this.workspace = new Workspace(this);
     this.commands = new Commands(this);
     this.fileManager = new FileManager(this);
@@ -87,6 +96,11 @@ export class App extends Events {
     this.registerExtensions(IMAGE_EXTS, 'image');
     this.settingTabs = coreSettingTabs(this);
     registerCoreCommands(this);
+    // módulos (cada uno en su carpeta; ver CLAUDE.md). Antes del layout: registran vistas.
+    await installLinks(this);
+    await installMobile(this);
+    await installPlugins(this);
+    await this.plugins.loadCore();
     document.addEventListener('keydown', this.commands.handleKeydown);
     this.darkQuery.addEventListener('change', () => this.applySettings());
 
