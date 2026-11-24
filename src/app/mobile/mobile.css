@@ -1,1 +1,128 @@
-/* estilos del módulo mobile */
+/* estilos del módulo mobile (todo bajo body.is-mobile: en escritorio no cambia nada) */
+
+.mobile-toolbar { display: none; }
+
+/* ---------------------------------------------------------------- viewport iOS */
+
+.is-mobile .app-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--mobile-vvh, 100dvh);
+  transform: translateY(var(--mobile-vvtop, 0px));
+  padding-bottom: env(safe-area-inset-bottom);
+  overflow: hidden;
+}
+.is-mobile.mobile-keyboard-open .app-container { padding-bottom: 0; }
+.is-mobile .view-content, .is-mobile .markdown-reading-view, .is-mobile .cm-scroller, .is-mobile .modal, .is-mobile .vertical-tab-content-container { overscroll-behavior: contain; }
+.is-mobile .mobile-navbar { touch-action: none; }
+
+/* modales tipo hoja: por encima del teclado */
+.is-mobile.mobile-keyboard-open .modal-container { bottom: auto; top: var(--mobile-vvtop); height: var(--mobile-vvh); padding-bottom: 0; }
+.is-mobile.mobile-keyboard-open .modal { max-height: calc(var(--mobile-vvh) - 16px); padding-bottom: 20px; }
+.is-mobile.mobile-keyboard-open .notice-container { transform: translateY(var(--mobile-vvtop)); }
+
+/* ---------------------------------------------------------------- barra única */
+
+.is-mobile .mod-root .view-header { display: none; }
+.is-mobile .mobile-navbar { gap: 0; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.is-mobile .mobile-navbar-title {
+  min-width: 0;
+  padding: 0 6px;
+  font-size: var(--font-ui-medium);
+  font-weight: 500;
+  color: var(--text-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 48px;
+  cursor: text;
+}
+.mobile-navbar-view-actions, .mobile-navbar-view-actions .view-actions { display: flex; }
+.mobile-tabs-count {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border: 1.75px solid currentColor;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------- drawers */
+
+.is-mobile .workspace-sidedock.is-dragging { transition: none; visibility: visible; }
+.is-mobile .sidedock-backdrop { transition: opacity 0.2s; }
+.mobile-drawer-footer { display: none; }
+.is-mobile .mobile-drawer-footer { display: block; flex-shrink: 0; padding: 4px 6px; border-top: 1px solid var(--background-modifier-border); }
+.mobile-drawer-footer .mobile-sheet-option { cursor: pointer; color: var(--text-muted); }
+
+/* ---------------------------------------------------------------- toolbar sobre el teclado */
+
+.is-mobile.mobile-editing .mobile-toolbar {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: 0 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  touch-action: pan-x;
+  overscroll-behavior: contain;
+  background: var(--background-secondary);
+  border-top: 1px solid var(--background-modifier-border);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.mobile-toolbar::-webkit-scrollbar { display: none; }
+.is-mobile .mobile-toolbar-button { flex-shrink: 0; width: var(--touch-target); }
+.mobile-toolbar-text { font-family: var(--font-monospace); font-size: 14px; font-weight: 600; white-space: nowrap; }
+
+/* ---------------------------------------------------------------- hojas (adjuntar, pestañas) */
+
+.mobile-sheet .modal-content { display: flex; flex-direction: column; gap: 4px; }
+.mobile-sheet-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--touch-target);
+  padding: 10px 14px;
+  text-align: left;
+  font-size: var(--font-ui-medium);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-m);
+}
+.mobile-sheet-option-icon { display: flex; color: var(--text-muted); }
+.mobile-tab-list { display: flex; flex-direction: column; gap: 2px; max-height: 55dvh; overflow: auto; }
+.mobile-tab-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--touch-target);
+  padding: 0 0 0 12px;
+  border-radius: var(--radius-m);
+  font-size: var(--font-ui-medium);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.mobile-tab-item.is-active { background: var(--background-modifier-active-hover); }
+.mobile-tab-item-icon { display: flex; color: var(--text-muted); }
+.mobile-tab-item-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mobile-tab-new { margin-top: 6px; border-top: 1px solid var(--background-modifier-border); border-radius: 0; }
+
+/* ---------------------------------------------------------------- targets táctiles */
+
+.is-mobile .menu-item, .is-mobile .workspace-tab-header, .is-mobile .vertical-tab-nav-item { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.is-mobile .vertical-tab-nav-item { display: flex; align-items: center; min-height: var(--touch-target); }
+.is-mobile .notice { min-height: var(--touch-target); display: flex; align-items: center; }
+.is-mobile .checkbox-container { width: 51px; height: 31px; border-radius: 16px; }
+.is-mobile .checkbox-container::after { width: 25px; height: 25px; }
+.is-mobile .checkbox-container.is-enabled::after { transform: translateX(20px); }
+.is-mobile .tree-item-self { -webkit-touch-callout: none; }

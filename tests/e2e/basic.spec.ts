@@ -2,6 +2,9 @@ import { test, expect, type Page } from '@playwright/test';
 
 const isPhone = (page: Page) => (page.viewportSize()?.width ?? 1000) <= 768;
 
+// en el teléfono el título de la nota va en la barra única de arriba
+const noteTitle = (page: Page) => isPhone(page) ? page.locator('.mobile-navbar-title') : page.locator('.view-header-title').filter({ visible: true });
+
 async function openLeft(page: Page) {
   if (isPhone(page)) await page.locator('.mobile-navbar-action').first().click();
 }
@@ -43,7 +46,7 @@ test('crear nota, escribir, y persiste al recargar', async ({ page }) => {
   await expect(page.locator('.cm-content')).toContainText('Bienvenida');
   if (isPhone(page)) await page.locator('.mobile-navbar-action[aria-label="Nueva nota"]').click();
   else await page.locator('.side-dock-ribbon-action[aria-label="Nueva nota"]').click();
-  await expect(page.locator('.view-header-title').filter({ visible: true })).toHaveText('Sin título');
+  await expect(noteTitle(page)).toHaveText('Sin título');
   await page.locator('.cm-content').filter({ visible: true }).click();
   await page.keyboard.type('# Prueba\n\nTexto con [[Otra nota]]');
   await page.waitForTimeout(700);
@@ -53,7 +56,7 @@ test('crear nota, escribir, y persiste al recargar', async ({ page }) => {
   await expect(page.locator('.cm-content').filter({ visible: true })).toContainText('Texto con');
   // tocar el link crea la nota destino
   await page.locator('.cm-content').filter({ visible: true }).locator('.ml-wikilink').click();
-  await expect(page.locator('.view-header-title').filter({ visible: true })).toHaveText('Otra nota');
+  await expect(noteTitle(page)).toHaveText('Otra nota');
 });
 
 test('renombrar y borrar desde el explorador', async ({ page }) => {
