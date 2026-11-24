@@ -566,7 +566,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--interactive-acce
 .is-mobile .vertical-tabs-container { flex-direction: column; }
 .is-mobile .vertical-tab-header { width: auto; display: flex; overflow-x: auto; padding: 8px; gap: 4px; border-right: none; border-bottom: 1px solid var(--background-modifier-border); }
 .is-mobile .vertical-tab-header-group-title { display: none; }
-.is-mobile .mod-settings .vertical-tab-header { padding-right: 56px; }
+.is-mobile .mod-settings .vertical-tab-header { margin-right: 52px; }
 .is-mobile .vertical-tab-nav-item { white-space: nowrap; }
 .is-mobile .vertical-tab-content-container { padding: 16px; }
 .is-mobile .setting-item { flex-wrap: wrap; }

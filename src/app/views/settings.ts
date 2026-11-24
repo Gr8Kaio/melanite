@@ -85,6 +85,7 @@ export class SettingsModal extends Modal {
     this.current?.hide();
     this.navEl.querySelectorAll('.is-active').forEach((el) => el.removeClass('is-active'));
     nav.addClass('is-active');
+    nav.scrollIntoView({ block: 'nearest', inline: 'nearest' }); // en el teléfono las pestañas scrollean en horizontal
     this.current = tab;
     this.paneEl.empty();
     this.paneEl.appendChild(tab.containerEl);
