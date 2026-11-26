@@ -56,6 +56,17 @@ export class MarkdownView extends FileView {
       if (this.mode !== 'split') return;
       this.scrollPreviewToLine(this.cm.posAtCoords({ x: e.clientX, y: e.clientY }, false));
     });
+    // y al revés: doble click en la vista previa lleva el editor a ese bloque
+    this.readingEl.addEventListener('dblclick', (e) => {
+      if (this.mode !== 'split') return;
+      const block = (e.target as HTMLElement).closest<HTMLElement>('[data-line-offset] > [data-line]');
+      const root = block?.parentElement;
+      if (!block || !root) return;
+      const n = Number(block.dataset.line) + Number(root.dataset.lineOffset ?? 0) + 1;
+      const line = this.cm.state.doc.line(Math.min(Math.max(1, n), this.cm.state.doc.lines));
+      this.cm.dispatch({ selection: { anchor: line.from }, effects: EditorView.scrollIntoView(line.from, { y: 'start', yMargin: 16 }) });
+      this.cm.focus();
+    });
     this.titleEl.addEventListener('click', () => { if (this.file) void this.app.fileManager.promptForRename(this.file); });
 
     // links internos dentro del modo lectura y de bloques renderizados del editor

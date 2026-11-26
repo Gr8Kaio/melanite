@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => {
   build: desktop ? { outDir: 'dist-desktop', chunkSizeWarningLimit: 2000 } : { chunkSizeWarningLimit: 2000 },
   define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
+    // version.json: lo lee "Buscar actualizaciones" para decir qué versión hay (el SW no lo cachea)
+    { name: 'version-json', apply: 'build', generateBundle() { this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ version: pkg.version }) }); } },
     VitePWA({
       disable: desktop,
       registerType: 'autoUpdate',

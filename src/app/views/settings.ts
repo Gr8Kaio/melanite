@@ -2,7 +2,7 @@ import type { App, AppSettings } from '../app';
 import { Modal, confirmDialog } from '../ui/modal';
 import { Setting } from '../ui/setting';
 import { t } from '../i18n';
-import { checkForUpdates, desktopUpdates, installUpdate } from '../updates';
+import { checkForUpdates, desktopUpdates, downloadUpdate, installUpdate } from '../updates';
 
 /** Pestaña de ajustes (la app y los plugins agregan las suyas). */
 export abstract class SettingTab {
@@ -102,6 +102,21 @@ export class SettingsModal extends Modal {
 function updatesSetting(el: HTMLElement): void {
   const row = new Setting(el).setName(t('settings.updates')).setDesc(t('settings.updatesIdle'));
   let installBtn: HTMLButtonElement | null = null;
+  let downloadBtn: HTMLButtonElement | null = null;
+  const showAvailable = (version: string, current: string) => {
+    row.setDesc(t('settings.updatesAvailable', { v: version, current }));
+    if (downloadBtn) return;
+    row.addButton((b) => {
+      downloadBtn = b.buttonEl;
+      b.setButtonText(t('settings.updatesDownload')).setCta().onClick(async () => {
+        b.setDisabled(true);
+        row.setDesc(desktopUpdates() ? t('settings.updatesDownloading', { v: version }) : t('settings.updatesWeb'));
+        await downloadUpdate();
+        b.buttonEl.remove();
+        downloadBtn = null;
+      });
+    });
+  };
   const showInstall = (version: string) => {
     row.setDesc(t('settings.updatesReady', { v: version }));
     if (installBtn) return;
@@ -121,6 +136,7 @@ function updatesSetting(el: HTMLElement): void {
     const r = await checkForUpdates();
     b.setDisabled(false);
     if (r.status === 'latest') { row.setDesc(t('settings.updatesLatest', { v: r.version })); }
+    else if (r.status === 'available') { showAvailable(r.version, r.current); }
     else if (r.status === 'downloading') { row.setDesc(r.version ? t('settings.updatesDownloading', { v: r.version }) : t('settings.updatesWeb')); }
     else if (r.status === 'downloaded') { showInstall(r.version); }
     else if (r.status === 'unsupported') { row.setDesc(t('settings.updatesUnsupported')); }

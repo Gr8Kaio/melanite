@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('melaniteDesktop', {
   platform: process.platform,
   updates: {
     check: () => ipcRenderer.invoke('update:check'),
+    download: () => ipcRenderer.invoke('update:download'),
     install: () => ipcRenderer.invoke('update:install'),
     onProgress: on('update:progress'),
     onDownloaded: on('update:downloaded'),

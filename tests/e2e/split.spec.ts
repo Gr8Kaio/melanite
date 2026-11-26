@@ -35,4 +35,13 @@ test('lado a lado por defecto: vista previa en vivo, scroll independiente, doble
   // doble click en la última línea lleva la vista previa ahí
   await view.locator('.cm-line').last().dblclick();
   await expect.poll(() => reading.evaluate((el) => el.scrollTop)).toBeGreaterThan(100);
+
+  // y al revés: doble click en un título de la vista previa lleva el editor ahí
+  await reading.evaluate((el) => { el.scrollTop = 0; });
+  await preview.locator('h2').first().dblclick();
+  await expect.poll(() => page.evaluate(() => {
+    const ws = (window as unknown as { app: { workspace: { activeLeaf: { view: { editor: { getLine(n: number): string; getCursor(): { line: number } } } } } } }).app.workspace;
+    const ed = ws.activeLeaf.view.editor; return ed.getLine(ed.getCursor().line);
+  })).toBe('## The basics');
+  await expect.poll(() => scroller.evaluate((el) => el.scrollTop)).toBeLessThan(400);
 });
