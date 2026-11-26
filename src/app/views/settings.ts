@@ -144,6 +144,38 @@ function updatesSetting(el: HTMLElement): void {
   }));
 }
 
+// ---------------------------------------------------------------- colores de sintaxis
+
+const SYNTAX_KEYS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'math', 'code', 'quote', 'tag', 'formatting'] as const;
+
+/** Un selector de color por tipo de línea; edita los colores del tema que está activo. */
+function syntaxColorSettings(el: HTMLElement, s: AppSettings, set: Setter): void {
+  const theme = document.body.hasClass('theme-dark') ? 'dark' : 'light';
+  el.createEl('h3', { text: t('settings.syntaxColors') });
+  el.createDiv({ cls: 'setting-item-description', text: t(theme === 'dark' ? 'settings.syntaxColorsDescDark' : 'settings.syntaxColorsDescLight') });
+  // el color que se ve hoy (elegido o de fábrica): sin el estilo del usuario, el de fábrica
+  const factory = (k: string) => {
+    const style = document.getElementById('ml-syntax-colors') as HTMLStyleElement | null;
+    const was = style?.disabled ?? false;
+    if (style) style.disabled = true;
+    const v = getComputedStyle(document.body).getPropertyValue(`--syn-${k}`).trim();
+    if (style) style.disabled = was;
+    return v;
+  };
+  const current = () => ({ ...s.syntaxColors[theme] });
+  const save = (m: Record<string, string>) => set('syntaxColors', { ...s.syntaxColors, [theme]: m });
+  for (const k of SYNTAX_KEYS) {
+    const row = new Setting(el).setName(t(`settings.syn.${k}`));
+    const input = row.controlEl.createEl('input', { type: 'color', cls: 'syntax-color-input' });
+    input.value = s.syntaxColors[theme][k] ?? factory(k);
+    input.addEventListener('input', () => save({ ...current(), [k]: input.value }));
+    row.addExtraButton((b) => b.setIcon('rotate-ccw').setTooltip(t('settings.syntaxReset')).onClick(() => {
+      const m = current(); delete m[k]; save(m);
+      input.value = factory(k);
+    }));
+  }
+}
+
 // ---------------------------------------------------------------- borrador + Apply
 
 /** Cambios pendientes de los ajustes del núcleo (se aplican con el botón Apply). */
@@ -210,6 +242,7 @@ export function coreSettingTabs(app: App): SettingTab[] {
         .setValue(s.theme).onChange((v) => set('theme', v as AppSettings['theme'])));
       new Setting(el).setName(t('settings.language')).setDesc(t('settings.languageDesc')).addDropdown((d) => d
         .addOptions({ es: 'Español', en: 'English' }).setValue(s.language).onChange((v) => set('language', v as AppSettings['language'])));
+      syntaxColorSettings(el, s, set);
     }),
     appTab(app, 'about', t('settings.about'), (el) => {
       new Setting(el).setName('Melanite').setDesc(t('settings.version', { v: __APP_VERSION__ }));

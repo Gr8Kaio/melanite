@@ -36,6 +36,8 @@ export interface AppSettings {
   newFileFolder: string;
   attachmentFolder: string;
   confirmDelete: boolean;
+  /** Colores de sintaxis elegidos por el usuario, por tema (clave sin el prefijo --syn-). */
+  syntaxColors: { light: Record<string, string>; dark: Record<string, string> };
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -49,6 +51,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   newFileFolder: '',
   attachmentFolder: 'attachments',
   confirmDelete: true,
+  syntaxColors: { light: {}, dark: {} },
 };
 
 export const CONFIG_DIR = '.melanite';
@@ -244,6 +247,9 @@ export class App extends Events {
     document.body.toggleClass('theme-dark', dark);
     document.body.toggleClass('theme-light', !dark);
     document.body.style.setProperty('--font-text-size', `${s.fontSize}px`);
+    const vars = (m: Record<string, string>) => Object.entries(m).map(([k, v]) => `--syn-${k}: ${v};`).join(' ');
+    const style = document.getElementById('ml-syntax-colors') ?? document.head.appendChild(Object.assign(document.createElement('style'), { id: 'ml-syntax-colors' }));
+    style.textContent = `html body.theme-light { ${vars(s.syntaxColors.light)} } html body.theme-dark { ${vars(s.syntaxColors.dark)} }`;
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#141114' : '#faf8f8');
   }
 }

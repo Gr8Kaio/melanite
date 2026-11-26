@@ -251,10 +251,12 @@ md.inline.ruler.push('ml_tag', tagRule);
 md.block.ruler.before('fence', 'ml_math_block', blockMathRule, { alt: ['paragraph', 'reference', 'blockquote', 'list'] });
 md.block.ruler.before('fence', 'ml_latex_list', latexListRule, { alt: ['paragraph', 'reference', 'blockquote', 'list'] });
 md.core.ruler.after('inline', 'ml_tasks', taskRule);
-// línea de origen de cada bloque de primer nivel (para alinear la vista previa con el editor)
+// línea de origen de cada bloque de primer nivel (para alinear la vista previa con el editor),
+// y de cada ítem de lista y fila de tabla (para que el doble click caiga en la línea justa)
 md.core.ruler.push('ml_lines', (state) => {
   for (const tok of state.tokens) {
-    if (tok.map && tok.level === 0 && tok.nesting === 1) tok.attrSet('data-line', String(tok.map[0]));
+    if (!tok.map || tok.nesting !== 1) continue;
+    if (tok.level === 0 || tok.type === 'list_item_open' || tok.type === 'tr_open') tok.attrSet('data-line', String(tok.map[0]));
   }
 });
 

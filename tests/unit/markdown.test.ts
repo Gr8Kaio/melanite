@@ -75,3 +75,11 @@ describe('tamaño de imágenes', () => {
     expect(renderHtml('![[a.png|300x200]]')).toContain('width="300" height="200"');
   });
 });
+
+describe('líneas de origen en la vista previa', () => {
+  it('ítems de lista y filas de tabla llevan data-line', () => {
+    const html = renderHtml('- a\n- b\n\n| x |\n|---|\n| 1 |\n| 2 |');
+    expect(html).toContain('<li data-line="1">');
+    expect(html).toContain('<tr data-line="6">');
+  });
+});

@@ -2,8 +2,14 @@ import { Plugin, PluginSettingTab, Setting, TFile, normalizePath, type App } fro
 import { t } from '../../app/i18n';
 import { applyTemplate, formatDate } from './dates';
 
-interface DailySettings { folder: string; format: string; template: string }
-const DEFAULTS: DailySettings = { folder: '', format: 'YYYY-MM-DD', template: '' };
+interface DailySettings { folder: string; format: string; template: string; carryOver: boolean }
+const DEFAULTS: DailySettings = { folder: '', format: 'YYYY-MM-DD', template: '', carryOver: true };
+const LOOKBACK_DAYS = 60; // hasta dónde busca la última nota diaria para traer pendientes
+
+/** Las tareas sin marcar de una nota (con su sangría), en orden. */
+export function openTasks(text: string): string[] {
+  return text.split('\n').filter((l) => /^\s*[-*+] \[ \] +\S/.test(l)).map((l) => l.replace(/\s+$/, ''));
+}
 
 export const manifest = () => ({ id: 'daily-notes', name: t('plugins.dailyNotes.name'), description: t('plugins.dailyNotes.desc'), version: '1.0.0' });
 
@@ -28,10 +34,25 @@ export default class DailyNotesPlugin extends Plugin {
     const existing = this.app.vault.getFileByPath(path);
     if (existing) return existing;
     if (!create) throw new Error(`no existe ${path}`);
-    let content = '## To do\n\n- [ ] '; // sin plantilla configurada: arranca con la lista del día
+    const carried = this.settings.carryOver ? await this.pendingFromBefore(date) : [];
+    // sin plantilla configurada: arranca con la lista del día (y lo que quedó pendiente)
+    let content = `## To do\n\n${carried.map((l) => l + '\n').join('')}- [ ] `;
     const tpl = this.settings.template && this.app.vault.getFileByPath(normalizePath(this.settings.template.replace(/(\.md)?$/, '.md')));
-    if (tpl) content = applyTemplate(await this.app.vault.read(tpl), { title: path.replace(/^.*\//, '').replace(/\.md$/, ''), date });
+    if (tpl) {
+      content = applyTemplate(await this.app.vault.read(tpl), { title: path.replace(/^.*\//, '').replace(/\.md$/, ''), date });
+      if (carried.length) content = `${content.replace(/\s*$/, '')}\n\n${carried.join('\n')}\n`;
+    }
     return this.app.vault.create(path, content);
+  }
+
+  /** Tareas sin marcar de la última nota diaria anterior a `date` (no la modifica). */
+  private async pendingFromBefore(date: Date): Promise<string[]> {
+    for (let i = 1; i <= LOOKBACK_DAYS; i++) {
+      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate() - i);
+      const prev = this.app.vault.getFileByPath(this.pathFor(d));
+      if (prev) return openTasks(await this.app.vault.read(prev));
+    }
+    return [];
   }
 
   async openToday() {
@@ -55,5 +76,7 @@ class DailySettingTab extends PluginSettingTab {
     fmt.addText((x) => x.setPlaceholder(DEFAULTS.format).setValue(s.format).onChange((v) => { s.format = v.trim(); example(); void this.plugin.save(); }));
     new Setting(el).setName(t('plugins.dailyNotes.template')).setDesc(t('plugins.dailyNotes.templateDesc'))
       .addText((x) => x.setPlaceholder('plantillas/diaria').setValue(s.template).onChange((v) => { s.template = v.trim(); void this.plugin.save(); }));
+    new Setting(el).setName(t('plugins.dailyNotes.carryOver')).setDesc(t('plugins.dailyNotes.carryOverDesc'))
+      .addToggle((x) => x.setValue(s.carryOver).onChange((v) => { s.carryOver = v; void this.plugin.save(); }));
   }
 }

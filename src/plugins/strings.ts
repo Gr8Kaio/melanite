@@ -44,6 +44,8 @@ export const es = {
   'plugins.dailyNotes.folderDesc': 'Dónde se crean las notas diarias. Vacío = la raíz.',
   'plugins.dailyNotes.format': 'Formato de fecha',
   'plugins.dailyNotes.formatDesc': 'Nombre del archivo. YYYY año, MM mes, DD día, dddd nombre del día, [texto] literal. Ejemplo hoy: {example}',
+  'plugins.dailyNotes.carryOver': 'Traer tareas pendientes',
+  'plugins.dailyNotes.carryOverDesc': 'La nota nueva arranca con las tareas sin marcar de la última nota diaria (esa nota no se toca).',
   'plugins.dailyNotes.template': 'Plantilla',
   'plugins.dailyNotes.templateDesc': 'Ruta de una nota que se usa como contenido inicial (acepta {{date}}, {{time}}, {{title}}). Vacío: arranca con una lista de tareas.',
 
@@ -117,6 +119,8 @@ export const en: Record<keyof typeof es, string> = {
   'plugins.dailyNotes.folderDesc': 'Where daily notes are created. Empty = root.',
   'plugins.dailyNotes.format': 'Date format',
   'plugins.dailyNotes.formatDesc': 'File name. YYYY year, MM month, DD day, dddd weekday, [text] literal. Today: {example}',
+  'plugins.dailyNotes.carryOver': 'Carry over unfinished tasks',
+  'plugins.dailyNotes.carryOverDesc': 'The new note starts with the unchecked tasks from the last daily note (that note is left untouched).',
   'plugins.dailyNotes.template': 'Template',
   'plugins.dailyNotes.templateDesc': 'Path of a note used as initial content (supports {{date}}, {{time}}, {{title}}). Empty: starts with a to-do list.',
   'plugins.templates.name': 'Templates',

@@ -59,9 +59,10 @@ export class MarkdownView extends FileView {
     // y al revés: doble click en la vista previa lleva el editor a ese bloque
     this.readingEl.addEventListener('dblclick', (e) => {
       if (this.mode !== 'split') return;
-      const block = (e.target as HTMLElement).closest<HTMLElement>('[data-line-offset] > [data-line]');
-      const root = block?.parentElement;
-      if (!block || !root) return;
+      // el elemento con línea más cercano: ítem de lista, fila de tabla o bloque
+      const block = (e.target as HTMLElement).closest<HTMLElement>('[data-line]');
+      const root = block?.closest<HTMLElement>('[data-line-offset]');
+      if (!block || !root || !this.renderedEl.contains(root)) return;
       const n = Number(block.dataset.line) + Number(root.dataset.lineOffset ?? 0) + 1;
       const line = this.cm.state.doc.line(Math.min(Math.max(1, n), this.cm.state.doc.lines));
       this.cm.dispatch({ selection: { anchor: line.from }, effects: EditorView.scrollIntoView(line.from, { y: 'start', yMargin: 16 }) });
