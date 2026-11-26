@@ -45,7 +45,7 @@ export const es = {
   'plugins.dailyNotes.format': 'Formato de fecha',
   'plugins.dailyNotes.formatDesc': 'Nombre del archivo. YYYY año, MM mes, DD día, dddd nombre del día, [texto] literal. Ejemplo hoy: {example}',
   'plugins.dailyNotes.template': 'Plantilla',
-  'plugins.dailyNotes.templateDesc': 'Ruta de una nota que se usa como contenido inicial (acepta {{date}}, {{time}}, {{title}}).',
+  'plugins.dailyNotes.templateDesc': 'Ruta de una nota que se usa como contenido inicial (acepta {{date}}, {{time}}, {{title}}). Vacío: arranca con una lista de tareas.',
 
   'plugins.templates.name': 'Plantillas',
   'plugins.templates.desc': 'Insertar notas plantilla en el cursor, con variables de fecha y título.',
@@ -118,7 +118,7 @@ export const en: Record<keyof typeof es, string> = {
   'plugins.dailyNotes.format': 'Date format',
   'plugins.dailyNotes.formatDesc': 'File name. YYYY year, MM month, DD day, dddd weekday, [text] literal. Today: {example}',
   'plugins.dailyNotes.template': 'Template',
-  'plugins.dailyNotes.templateDesc': 'Path of a note used as initial content (supports {{date}}, {{time}}, {{title}}).',
+  'plugins.dailyNotes.templateDesc': 'Path of a note used as initial content (supports {{date}}, {{time}}, {{title}}). Empty: starts with a to-do list.',
   'plugins.templates.name': 'Templates',
   'plugins.templates.desc': 'Insert template notes at the cursor, with date and title variables.',
   'plugins.templates.insert': 'Insert template',

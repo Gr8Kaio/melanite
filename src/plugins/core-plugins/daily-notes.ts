@@ -28,7 +28,7 @@ export default class DailyNotesPlugin extends Plugin {
     const existing = this.app.vault.getFileByPath(path);
     if (existing) return existing;
     if (!create) throw new Error(`no existe ${path}`);
-    let content = '';
+    let content = '## To do\n\n- [ ] '; // sin plantilla configurada: arranca con la lista del día
     const tpl = this.settings.template && this.app.vault.getFileByPath(normalizePath(this.settings.template.replace(/(\.md)?$/, '.md')));
     if (tpl) content = applyTemplate(await this.app.vault.read(tpl), { title: path.replace(/^.*\//, '').replace(/\.md$/, ''), date });
     return this.app.vault.create(path, content);
