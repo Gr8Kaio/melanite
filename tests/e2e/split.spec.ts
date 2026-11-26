@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-test('lado a lado: editor y vista previa en vivo, con scroll alineado', async ({ page }) => {
+test.skip(({ isMobile }) => isMobile, 'en el teléfono el default es live preview');
+
+test('lado a lado por defecto: vista previa en vivo, scroll independiente, doble click salta', async ({ page }) => {
   await page.goto('./');
   await expect(page.locator('.cm-content')).toContainText('Welcome');
-  await page.evaluate(() => (window as unknown as { app: { commands: { executeCommandById(id: string): void } } }).app.commands.executeCommandById('markdown:toggle-split'));
 
   const view = page.locator('.markdown-view.is-split').filter({ visible: true });
   await expect(view).toBeVisible();
@@ -24,7 +25,14 @@ test('lado a lado: editor y vista previa en vivo, con scroll alineado', async ({
   await expect(preview.locator('h1')).toHaveText('Welcome to Melanite (editado en vivo)');
   await page.screenshot({ path: `test-results/split-mode-${test.info().project.name}.png` });
 
-  // bajar en el editor baja la vista previa
-  await view.locator('.cm-scroller').evaluate((el) => { el.scrollTop = el.scrollHeight; });
-  await expect.poll(() => view.locator('.markdown-reading-view').evaluate((el) => el.scrollTop)).toBeGreaterThan(100);
+  // bajar en el editor no mueve la vista previa
+  const reading = view.locator('.markdown-reading-view');
+  const scroller = view.locator('.cm-scroller');
+  await scroller.evaluate((el) => { el.scrollTop = el.scrollHeight; });
+  await page.waitForTimeout(300);
+  expect(await reading.evaluate((el) => el.scrollTop)).toBe(0);
+
+  // doble click en la última línea lleva la vista previa ahí
+  await view.locator('.cm-line').last().dblclick();
+  await expect.poll(() => reading.evaluate((el) => el.scrollTop)).toBeGreaterThan(100);
 });

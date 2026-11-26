@@ -41,7 +41,7 @@ export interface AppSettings {
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   language: 'en',
-  defaultViewMode: 'live',
+  defaultViewMode: Platform.isMobile ? 'live' : 'split', // en el teléfono no entra lado a lado
   readableLineLength: true,
   spellcheck: true,
   fontSize: 16,

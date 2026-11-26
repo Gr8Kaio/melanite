@@ -63,3 +63,12 @@ describe('render de lectura', () => {
     expect(r).toEqual({ yaml: 'a: 1', body: '# Hola', lineOffset: 3 });
   });
 });
+
+describe('tamaño de imágenes', () => {
+  it('![alt|300](url) y ![[img|300x200]]', () => {
+    expect(renderHtml('![gato|300](a.png)')).toContain('<img src="a.png" alt="gato" width="300">');
+    expect(renderHtml('![300x200](a.png)')).toContain('alt="" width="300" height="200"');
+    expect(renderHtml('![solo alt](a.png)')).toContain('alt="solo alt"');
+    expect(renderHtml('![[a.png|300x200]]')).toContain('width="300" height="200"');
+  });
+});

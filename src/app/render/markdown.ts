@@ -255,6 +255,20 @@ r.ml_embed = (toks, i) => {
   }
   return `<span class="internal-embed markdown-embed" data-src="${esc(path + subpath)}"></span>`;
 };
+// ![alt|300](url) y ![alt|300x200](url): tamaño al final del texto alternativo, como Obsidian
+const defaultImage = md.renderer.rules.image!;
+r.image = (toks, i, opts, env, self) => {
+  const t = toks[i];
+  const bar = t.content.lastIndexOf('|');
+  const size = bar >= 0 ? parseSize(t.content.slice(bar + 1)) : parseSize(t.content);
+  if (size) {
+    t.content = bar >= 0 ? t.content.slice(0, bar) : '';
+    t.children = md.parseInline(t.content, env ?? {})[0]?.children ?? [];
+    if (size.width) t.attrSet('width', size.width);
+    if (size.height) t.attrSet('height', size.height);
+  }
+  return defaultImage(toks, i, opts, env, self);
+};
 r.ml_math = (toks, i) => {
   const t = toks[i];
   const display = (t.meta as { display: boolean }).display;

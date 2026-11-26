@@ -5,12 +5,24 @@ const isPhone = (page: Page) => (page.viewportSize()?.width ?? 1000) <= 768;
 // en el teléfono el título de la nota va en la barra única de arriba
 const noteTitle = (page: Page) => isPhone(page) ? page.locator('.mobile-navbar-title') : page.locator('.view-header-title').filter({ visible: true });
 
+// en escritorio el default es lado a lado; estos tests prueban el live preview
+async function liveMode(page: Page) {
+  await page.goto('./');
+  await expect(page.locator('.cm-content').first()).toContainText('Welcome');
+  await page.evaluate(async () => {
+    const app = (window as unknown as { app: { settings: { defaultViewMode: string }; saveSettings(): Promise<void> } }).app;
+    app.settings.defaultViewMode = 'live';
+    await app.saveSettings();
+  });
+  await page.reload();
+}
+
 async function openLeft(page: Page) {
   if (isPhone(page)) await page.locator('.mobile-navbar-action').first().click();
 }
 
 test('arranca con la nota de bienvenida renderizada', async ({ page }) => {
-  await page.goto('./');
+  await liveMode(page);
   await expect(page.locator('.cm-content')).toContainText('Welcome to Melanite');
   // live preview: sintaxis oculta fuera de la línea del cursor
   await expect(page.locator('.cm-line.ml-h1')).toHaveText('Welcome to Melanite');
@@ -42,7 +54,7 @@ test('modo lectura renderiza math, mermaid y callouts', async ({ page }) => {
 });
 
 test('crear nota, escribir, y persiste al recargar', async ({ page }) => {
-  await page.goto('./');
+  await liveMode(page);
   await expect(page.locator('.cm-content')).toContainText('Welcome');
   if (isPhone(page)) await page.locator('.mobile-navbar-action[aria-label="New note"]').click();
   else await page.locator('.side-dock-ribbon-action[aria-label="New note"]').click();

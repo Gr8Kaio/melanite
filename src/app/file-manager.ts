@@ -30,7 +30,7 @@ export class FileManager {
   async createAndOpen(folder: TFolder, content = ''): Promise<TFile> {
     const path = this.app.vault.getAvailablePath(joinPath(folder.path, t('file.untitled')), 'md');
     const file = await this.app.vault.create(path, content);
-    await this.app.workspace.getLeaf(false).openFile(file, { state: { mode: 'source' } });
+    await this.app.workspace.getLeaf(false).openFile(file);
     return file;
   }
 

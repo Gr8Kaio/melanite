@@ -50,8 +50,11 @@ export class MarkdownView extends FileView {
     this.splitButton = this.addAction('columns-2', t('view.splitMode'), () => this.toggleSplit());
     this.splitButton.addClass('mod-split');
     this.modeButton = this.addAction('book-open', t('view.toggleMode'), () => this.toggleMode());
-    // lado a lado: la vista previa sigue el scroll del editor
-    this.cm.scrollDOM.addEventListener('scroll', () => { if (this.mode === 'split') this.syncPreviewScroll(); }, { passive: true });
+    // lado a lado: scroll independiente; doble click en una línea lleva la vista previa ahí
+    this.cm.contentDOM.addEventListener('dblclick', (e) => {
+      if (this.mode !== 'split') return;
+      this.scrollPreviewToLine(this.cm.posAtCoords({ x: e.clientX, y: e.clientY }, false));
+    });
     this.titleEl.addEventListener('click', () => { if (this.file) void this.app.fileManager.promptForRename(this.file); });
 
     // links internos dentro del modo lectura y de bloques renderizados del editor
@@ -193,8 +196,7 @@ export class MarkdownView extends FileView {
     await MarkdownRenderer.render(this.app, this.getViewData(), el, this.file.path, this.renderChild);
     this.renderedEl.empty();
     this.renderedEl.appendChild(el);
-    if (this.mode === 'split') this.syncPreviewScroll();
-    else this.readingEl.scrollTop = scroll;
+    this.readingEl.scrollTop = scroll;
   }
 
   private scheduleSplitRender(): void {
@@ -203,19 +205,13 @@ export class MarkdownView extends FileView {
   }
 
   /**
-   * Lleva la vista previa a la misma altura que el editor: busca los bloques renderizados
-   * de la línea de arriba de todo (data-line) e interpola entre ellos.
+   * Lleva la vista previa a la línea del editor en `pos`: busca los bloques renderizados
+   * que la rodean (data-line) e interpola entre ellos.
    */
-  private syncPreviewScroll(): void {
+  private scrollPreviewToLine(pos: number): void {
     const root = this.renderedEl.querySelector<HTMLElement>('[data-line-offset]');
     if (!root) return;
-    const scroller = this.cm.scrollDOM;
-    if (scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2) {
-      this.readingEl.scrollTop = this.readingEl.scrollHeight; // al final del documento, al final de la vista previa
-      return;
-    }
-    const top = this.cm.lineBlockAtHeight(scroller.scrollTop);
-    const line = this.cm.state.doc.lineAt(top.from).number - 1 - Number(root.dataset.lineOffset ?? 0);
+    const line = this.cm.state.doc.lineAt(pos).number - 1 - Number(root.dataset.lineOffset ?? 0);
     const blocks = Array.from(root.querySelectorAll<HTMLElement>(':scope > [data-line]'));
     if (!blocks.length) return;
     let i = 0;
