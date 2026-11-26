@@ -6,7 +6,7 @@ import type { Component } from '../../core/component';
 import { parseWikilink, resolveLinkpath } from '../../core/links';
 import { IMAGE_EXTS, extname } from '../../core/path';
 import { MarkdownRenderer, calloutIcon, getResourceUrl, renderMath } from '../render/renderer';
-import { parseSize } from '../render/markdown';
+import { parseImageOpts } from '../render/markdown';
 import { setIcon } from '../ui/icons';
 
 /**
@@ -100,12 +100,12 @@ class ImageWidget extends LPWidget {
   constructor(readonly ctx: LivePreviewContext, readonly link: string, readonly alias: string) { super(); }
   eq(o: ImageWidget) { return o.link === this.link && o.alias === this.alias; }
   toDOM() {
-    const wrap = createSpan('ml-image-embed');
+    const o = parseImageOpts(this.alias);
+    const wrap = createSpan(`ml-image-embed ml-align-${o.align}`);
     const img = wrap.createEl('img');
-    const size = parseSize(this.alias);
-    if (size?.width) img.width = Number(size.width);
-    if (size?.height) img.height = Number(size.height);
-    if (!size && this.alias) img.alt = this.alias;
+    if (o.width) img.width = Number(o.width);
+    if (o.height) img.height = Number(o.height);
+    if (o.alt) img.alt = o.alt;
     if (/^(https?:|data:|blob:)/i.test(this.link)) img.src = this.link;
     else {
       let path = this.link;
@@ -223,7 +223,7 @@ function build(state: EditorState, version: number): DecorationSet {
           const url = node.getChild('URL');
           if (!ctx || !url || marks.length < 2 || lineActive(n.from)) return;
           const alt = text(marks[0].to, marks[1].from);
-          replace(n.from, n.to, new ImageWidget(ctx, text(url.from, url.to), alt.includes('|') ? alt.slice(alt.lastIndexOf('|') + 1) : alt));
+          replace(n.from, n.to, new ImageWidget(ctx, text(url.from, url.to), alt));
           return false;
         }
         case 'WikiLink': {

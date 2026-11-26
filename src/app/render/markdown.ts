@@ -221,6 +221,26 @@ export function parseSize(alias: string): { width?: string; height?: string } | 
   return m ? { width: m[1], height: m[2] } : null;
 }
 
+export type ImageAlign = 'center' | 'left' | 'right';
+/** "desc|300|left" → alt "desc", tamaño 300, alineada a la izquierda. Por defecto, centrada. */
+export function parseImageOpts(alias: string): { alt: string; width?: string; height?: string; align: ImageAlign } {
+  const out: ReturnType<typeof parseImageOpts> = { alt: '', align: 'center' };
+  const rest: string[] = [];
+  for (const part of alias.split('|')) {
+    const p = part.trim(), size = parseSize(p);
+    if (size) Object.assign(out, size);
+    else if (p === 'center' || p === 'left' || p === 'right') out.align = p;
+    else rest.push(part);
+  }
+  out.alt = rest.join('|').trim();
+  return out;
+}
+
+/** Atributos HTML del <img> según las opciones (tamaño y clase de alineación). */
+function imageAttrs(o: ReturnType<typeof parseImageOpts>): string {
+  return `${o.width ? ` width="${o.width}"` : ''}${o.height ? ` height="${o.height}"` : ''} class="ml-align-${o.align}"`;
+}
+
 export const md = new MarkdownIt({ html: true, linkify: true, breaks: true });
 md.use(footnote);
 md.inline.ruler.before('link', 'ml_wikilink', wikilinkRule);
@@ -249,9 +269,8 @@ r.ml_embed = (toks, i) => {
   const inner = toks[i].content;
   const { path, subpath, alias } = parseWikilink(inner);
   if (IMAGE_EXTS.includes(extname(path))) {
-    const size = parseSize(alias);
-    const attrs = size ? `${size.width ? ` width="${size.width}"` : ''}${size.height ? ` height="${size.height}"` : ''}` : '';
-    return `<span class="internal-embed image-embed" data-src="${esc(path)}"><img data-vault-src="${esc(path)}" alt="${esc(size ? path : alias || path)}"${attrs}></span>`;
+    const o = parseImageOpts(alias);
+    return `<span class="internal-embed image-embed ml-align-${o.align}" data-src="${esc(path)}"><img data-vault-src="${esc(path)}" alt="${esc(o.alt || path)}"${imageAttrs(o)}></span>`;
   }
   return `<span class="internal-embed markdown-embed" data-src="${esc(path + subpath)}"></span>`;
 };
@@ -259,14 +278,14 @@ r.ml_embed = (toks, i) => {
 const defaultImage = md.renderer.rules.image!;
 r.image = (toks, i, opts, env, self) => {
   const t = toks[i];
-  const bar = t.content.lastIndexOf('|');
-  const size = bar >= 0 ? parseSize(t.content.slice(bar + 1)) : parseSize(t.content);
-  if (size) {
-    t.content = bar >= 0 ? t.content.slice(0, bar) : '';
+  const o = parseImageOpts(t.content);
+  if (o.alt !== t.content) {
+    t.content = o.alt;
     t.children = md.parseInline(t.content, env ?? {})[0]?.children ?? [];
-    if (size.width) t.attrSet('width', size.width);
-    if (size.height) t.attrSet('height', size.height);
   }
+  if (o.width) t.attrSet('width', o.width);
+  if (o.height) t.attrSet('height', o.height);
+  t.attrSet('class', `ml-align-${o.align}`);
   return defaultImage(toks, i, opts, env, self);
 };
 r.ml_math = (toks, i) => {

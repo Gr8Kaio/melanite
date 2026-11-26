@@ -362,7 +362,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--interactive-acce
 .ml-math-src { font-family: var(--font-monospace); font-size: 0.9em; }
 .ml-table-src { font-family: var(--font-monospace); font-size: 0.9em; }
 .ml-math.math-block { display: block; text-align: center; padding: 6px 0; overflow-x: auto; cursor: text; }
-.ml-image-embed { display: inline-block; max-width: 100%; }
+.ml-image-embed { max-width: 100%; }
 .ml-image-embed img { max-width: 100%; border-radius: var(--radius-s); vertical-align: middle; }
 .ml-embed, .ml-rendered-block { cursor: text; }
 .ml-rendered-block { padding: 4px 0; }
@@ -411,6 +411,13 @@ input:focus, textarea:focus, select:focus { border-color: var(--interactive-acce
 .markdown-rendered blockquote { margin: 0.8em 0; padding: 0 0 0 14px; border-left: 3px solid var(--interactive-accent); color: var(--text-muted); }
 .markdown-rendered hr { border: none; border-top: 1px solid var(--background-modifier-border-hover); margin: 1.6em 0; }
 .markdown-rendered img { max-width: 100%; border-radius: var(--radius-s); }
+/* imágenes centradas por defecto; |left y |right las alinean */
+.markdown-rendered img.ml-align-center, .markdown-rendered img.ml-align-left, .markdown-rendered img.ml-align-right { display: block; margin: 0.5em auto; }
+.markdown-rendered img.ml-align-left { margin-left: 0; }
+.markdown-rendered img.ml-align-right { margin-right: 0; }
+.markdown-rendered .image-embed[class*="ml-align-"], .ml-image-embed { display: block; }
+.ml-image-embed.ml-align-center { text-align: center; }
+.ml-image-embed.ml-align-right { text-align: right; }
 .markdown-rendered .table-wrapper { overflow-x: auto; margin: 0.8em 0; }
 .markdown-rendered table { border-collapse: collapse; }
 .markdown-rendered th, .markdown-rendered td { border: 1px solid var(--background-modifier-border); padding: 5px 12px; }
