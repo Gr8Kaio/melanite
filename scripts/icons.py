@@ -63,10 +63,13 @@ def png(size: int, scale: float, background: bool, radius: bool) -> Image.Image:
 def main():
     (OUT / 'icons').mkdir(parents=True, exist_ok=True)
     (OUT / 'favicon.svg').write_text(svg(False), encoding='utf-8')
-    (OUT / 'icons' / 'logo.svg').write_text(svg(True), encoding='utf-8')
+    # la gema sola, sin recuadro ni fondo
+    (OUT / 'icons' / 'logo.svg').write_text(svg(False), encoding='utf-8')
     png(32, 1.0, False, False).save(OUT / 'icons' / 'icon-32.png')
-    png(192, 0.86, True, True).save(OUT / 'icons' / 'icon-192.png')
-    png(512, 0.86, True, True).save(OUT / 'icons' / 'icon-512.png')
+    png(192, 1.0, False, False).save(OUT / 'icons' / 'icon-192.png')
+    png(512, 1.0, False, False).save(OUT / 'icons' / 'icon-512.png')
+    # escritorio (Windows): .ico transparente con varios tamaños
+    png(256, 1.0, False, False).save(OUT.parent / 'desktop' / 'icon.ico', sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
     # maskable: fondo completo y gema dentro de la zona segura (80 %)
     png(512, 0.66, True, False).save(OUT / 'icons' / 'icon-maskable-512.png')
     # iOS redondea solo: fondo completo sin transparencia
