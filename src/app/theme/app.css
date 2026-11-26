@@ -318,7 +318,12 @@ input:focus, textarea:focus, select:focus { border-color: var(--interactive-acce
 /* lado a lado: editor (código) | vista previa; en el teléfono, uno arriba del otro */
 .markdown-view.is-split { flex-direction: row; }
 .markdown-view.is-split > .markdown-source-view, .markdown-view.is-split > .markdown-reading-view { flex: 1 1 0; min-width: 0; }
-.markdown-view.is-split > .markdown-reading-view { border-left: 1px solid var(--background-modifier-border); background: var(--background-primary); }
+.markdown-view.is-split > .markdown-reading-view { background: var(--background-primary); }
+.split-resizer { display: none; }
+.markdown-view.is-split > .split-resizer { display: block; flex: 0 0 5px; cursor: col-resize; background: var(--background-modifier-border); background-clip: content-box; padding: 0 2px; margin: 0 -2px; z-index: 1; touch-action: none; }
+.markdown-view.is-split > .split-resizer:hover, .markdown-view.is-split > .split-resizer.is-dragging { background: var(--interactive-accent); padding: 0 1px; }
+.is-mobile .markdown-view.is-split > .split-resizer { display: none; }
+body:not(.is-mobile) .markdown-view.is-split > .markdown-source-view { flex: 0 0 var(--split-left, 50%); }
 .is-mobile .markdown-view.is-split { flex-direction: column; }
 .is-mobile .view-action.mod-split { display: none; } /* en el teléfono: desde el menú ⋮ o la paleta */
 .is-mobile .markdown-view.is-split > .markdown-reading-view { border-left: none; border-top: 1px solid var(--background-modifier-border); }

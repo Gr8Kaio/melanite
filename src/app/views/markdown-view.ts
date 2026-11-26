@@ -39,6 +39,7 @@ export class MarkdownView extends FileView {
     super(leaf);
     this.contentEl.addClass('markdown-view');
     this.sourceEl = this.contentEl.createDiv('markdown-source-view');
+    this.addSplitResizer();
     this.readingEl = this.contentEl.createDiv('markdown-reading-view');
     this.renderedEl = this.readingEl.createDiv('markdown-preview-view');
     this.cm = new EditorView({ parent: this.sourceEl, state: this.newState('') });
@@ -197,6 +198,31 @@ export class MarkdownView extends FileView {
     this.renderedEl.empty();
     this.renderedEl.appendChild(el);
     this.readingEl.scrollTop = scroll;
+  }
+
+  /** Barra entre editor y vista previa: arrastrarla cambia el ancho; el valor queda guardado para todas las notas. */
+  private addSplitResizer(): void {
+    const KEY = 'melanite:split-ratio';
+    const handle = this.contentEl.createDiv('split-resizer');
+    const apply = (pct: number) => this.contentEl.style.setProperty('--split-left', `${pct}%`);
+    const saved = Number(localStorage.getItem(KEY));
+    if (saved) apply(saved);
+    handle.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      handle.setPointerCapture(e.pointerId);
+      handle.addClass('is-dragging');
+      const box = this.contentEl.getBoundingClientRect();
+      let pct = saved;
+      const move = (ev: PointerEvent) => { pct = Math.min(85, Math.max(15, ((ev.clientX - box.left) / box.width) * 100)); apply(pct); };
+      const up = () => {
+        handle.removeEventListener('pointermove', move);
+        handle.removeClass('is-dragging');
+        if (pct) localStorage.setItem(KEY, String(Math.round(pct * 10) / 10));
+      };
+      handle.addEventListener('pointermove', move);
+      handle.addEventListener('pointerup', up, { once: true });
+    });
+    handle.addEventListener('dblclick', () => { this.contentEl.style.removeProperty('--split-left'); localStorage.removeItem(KEY); }); // doble click: mitad y mitad
   }
 
   private scheduleSplitRender(): void {
