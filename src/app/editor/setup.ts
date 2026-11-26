@@ -12,6 +12,7 @@ import { livePreview } from './live-preview';
 
 const markdownStyle = HighlightStyle.define([
   { tag: tags.heading, class: 'ml-heading' },
+  ...[1, 2, 3, 4, 5, 6].map((n) => ({ tag: tags[`heading${n}` as 'heading1'], class: `ml-heading${n}` })),
   { tag: tags.emphasis, class: 'ml-em' },
   { tag: tags.strong, class: 'ml-strong' },
   { tag: tags.strikethrough, class: 'ml-strike' },

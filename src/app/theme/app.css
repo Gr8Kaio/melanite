@@ -60,6 +60,15 @@ body.theme-dark {
   --shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
 }
 
+body.theme-dark {
+  /* colores de sintaxis del editor (se pueden pisar desde un tema o snippet) */
+  --syn-h1: #6cb6ff; --syn-h2: #b083f0; --syn-h3: #4fd1c5; --syn-h4: #e6b450; --syn-h5: #f08a5d; --syn-h6: #9aa5b1;
+  --syn-math: #7ee787; --syn-code: #ff9b85; --syn-quote: #a5b4c3; --syn-tag: #e8a2ff; --syn-formatting: #6e7681;
+}
+body.theme-light {
+  --syn-h1: #0969da; --syn-h2: #8250df; --syn-h3: #0f8a7e; --syn-h4: #b07a00; --syn-h5: #c4512a; --syn-h6: #57606a;
+  --syn-math: #1a7f37; --syn-code: #b3361e; --syn-quote: #59636e; --syn-tag: #a626a4; --syn-formatting: #8c959f;
+}
 body.theme-light {
   color-scheme: light;
   --background-primary: #ffffff;
@@ -587,3 +596,16 @@ input:focus, textarea:focus, select:focus { border-color: var(--interactive-acce
 .is-mobile .setting-item { flex-wrap: wrap; }
 .is-mobile input[type='text'], .is-mobile textarea, .is-mobile select { font-size: 16px; min-height: var(--touch-target); }
 .is-mobile button { min-height: var(--touch-target); }
+
+/* colores de sintaxis en el editor: cada tipo de línea con su color */
+.ml-heading1, .ml-h1 { color: var(--syn-h1); }
+.ml-heading2, .ml-h2 { color: var(--syn-h2); }
+.ml-heading3, .ml-h3 { color: var(--syn-h3); }
+.ml-heading4, .ml-h4 { color: var(--syn-h4); }
+.ml-heading5, .ml-h5 { color: var(--syn-h5); }
+.ml-heading6, .ml-h6 { color: var(--syn-h6); }
+.ml-math-src { color: var(--syn-math); }
+.cm-line .ml-code, .ml-inline-code { color: var(--syn-code); }
+.ml-quote-text { color: var(--syn-quote); }
+.ml-tag-text, .ml-tag { color: var(--syn-tag); }
+.ml-formatting { color: var(--syn-formatting); }
