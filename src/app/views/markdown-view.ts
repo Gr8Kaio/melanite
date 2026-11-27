@@ -328,6 +328,9 @@ export class MarkdownView extends FileView {
       const frac = lb > la ? Math.min(1, Math.max(0, (line - la) / (lb - la))) : 0;
       y = ya + frac * (b.getBoundingClientRect().top - base - ya);
     }
+    // si ya se ve, no mover: el doble click también sirve para seleccionar (ej. el tamaño de una imagen)
+    const top = this.readingEl.scrollTop;
+    if (y >= top && y <= top + this.readingEl.clientHeight - 40) return;
     this.readingEl.scrollTop = Math.max(0, y - 16);
   }
 
