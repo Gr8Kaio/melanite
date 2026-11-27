@@ -41,6 +41,7 @@ Antes de dar algo por terminado: `npx tsc --noEmit`, `npm test`, `npm run build`
   - `.melanite/community-plugins.json` — `string[]` ids de plugins de la comunidad activos
   - `.melanite/plugins/<id>/{manifest.json, main.js, styles.css, data.json}`
   - `.melanite/hotkeys.json` — `{ commandId: Hotkey[] }` atajos personalizados
+  - `.melanite/explorer-order.json` — `{ rutaDeCarpeta: nombre[] }` orden manual del explorador (lo que no está va después, en orden por defecto)
   - `.melanite/snippets/*.css` — CSS snippets del usuario
   - `.trash/` — papelera (borrar = mover acá; vaciar = borrado definitivo)
 - Lo que es **por dispositivo** (no va al vault): layout del workspace (`localStorage['melanite:layout']`), carpetas expandidas, estado de sync (Dexie `kv`), sesión de Supabase (`localStorage['melanite-auth']`).

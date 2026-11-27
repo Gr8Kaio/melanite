@@ -305,6 +305,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--interactive-acce
 .tree-item-self:hover { background: var(--background-modifier-hover); color: var(--text-normal); }
 .tree-item-self.is-active { background: var(--background-modifier-active-hover); color: var(--text-normal); }
 .tree-item-self.is-drop-target, .nav-files-container.is-drop-target { outline: 2px solid var(--interactive-accent); outline-offset: -2px; }
+/* orden manual: una línea marca dónde cae (antes o después del ítem) */
+.tree-item-self.is-drop-before { box-shadow: inset 0 2px 0 var(--interactive-accent); }
+.tree-item-self.is-drop-after { box-shadow: inset 0 -2px 0 var(--interactive-accent); }
 .tree-item-inner { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .collapse-icon { display: flex; color: var(--text-faint); }
 .collapse-icon .svg-icon { width: 14px; height: 14px; }

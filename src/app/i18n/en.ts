@@ -32,6 +32,7 @@ const en: Record<keyof typeof es, string> = {
 
   'explorer.title': 'Files',
   'explorer.collapseAll': 'Collapse all',
+  'explorer.resetOrder': 'Reset order (A–Z)',
 
   'file.untitled': 'Untitled',
   'file.rename': 'Rename',

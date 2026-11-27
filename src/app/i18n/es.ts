@@ -29,6 +29,7 @@ const es = {
 
   'explorer.title': 'Archivos',
   'explorer.collapseAll': 'Contraer todo',
+  'explorer.resetOrder': 'Restablecer orden (A–Z)',
 
   'file.untitled': 'Sin título',
   'file.rename': 'Renombrar',

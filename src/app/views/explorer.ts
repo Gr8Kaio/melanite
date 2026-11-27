@@ -5,16 +5,19 @@ import { Menu, onContextMenu } from '../ui/modal';
 import { exportFolderPdf, exportPdf } from '../pdf';
 import { t } from '../i18n';
 import { Platform } from '../platform';
+import { placeName, renameInOrder, sortEntries, type ExplorerOrder } from './explorer-order';
 
 export const EXPLORER_VIEW = 'file-explorer';
 const EXPANDED_KEY = 'melanite:explorer-expanded';
 export const DRAG_TYPE = 'application/x-melanite-path';
+const ORDER_FILE = 'explorer-order.json';
 
 export class FileExplorerView extends ItemView {
   icon = 'folder';
   private treeEl!: HTMLDivElement;
   private expanded = new Set<string>();
   private renderTimer = 0;
+  private order: ExplorerOrder = {};
 
   getViewType() { return EXPLORER_VIEW; }
   getDisplayText() { return t('explorer.title'); }
@@ -41,7 +44,19 @@ export class FileExplorerView extends ItemView {
       this.folderMenu(this.app.vault.getRoot()).showAtPosition(pos);
     });
 
-    for (const ev of ['create', 'delete', 'rename'] as const) this.registerEvent(this.app.vault.on(ev, () => this.requestRender()));
+    this.order = (await this.app.readConfig<ExplorerOrder>(ORDER_FILE)) ?? {};
+    for (const ev of ['create', 'delete'] as const) this.registerEvent(this.app.vault.on(ev, () => this.requestRender()));
+    this.registerEvent(this.app.vault.on('rename', (file: TAbstractFile, oldPath: string) => {
+      const next = renameInOrder(this.order, oldPath, file.path);
+      if (next) void this.saveOrder(next);
+      this.requestRender();
+    }));
+    // el orden llega de otro dispositivo (sync) o lo escribimos nosotros
+    this.registerEvent(this.app.vault.on('modify', async (f: TFile) => {
+      if (f.path !== `.melanite/${ORDER_FILE}`) return;
+      this.order = (await this.app.readConfig<ExplorerOrder>(ORDER_FILE)) ?? {};
+      this.requestRender();
+    }));
     this.registerEvent(this.app.workspace.on('file-open', () => this.highlightActive()));
     this.render();
   }
@@ -73,10 +88,23 @@ export class FileExplorerView extends ItemView {
   }
 
   private sorted(folder: TFolder): TAbstractFile[] {
-    const coll = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
-    return folder.children
-      .filter((c) => !c.name.startsWith('.'))
-      .sort((a, b) => (a instanceof TFolder ? 0 : 1) - (b instanceof TFolder ? 0 : 1) || coll.compare(a.name, b.name));
+    const entries = folder.children.filter((c) => !c.name.startsWith('.')).map((file) => ({ file, name: file.name, isFolder: file instanceof TFolder }));
+    return sortEntries(entries, this.order[folder.path]).map((e) => e.file);
+  }
+
+  private async saveOrder(next: ExplorerOrder): Promise<void> {
+    this.order = next;
+    this.requestRender();
+    await this.app.writeConfig(ORDER_FILE, next);
+  }
+
+  /** Deja `file` antes o después de `target` (mismo nivel); si estaba en otra carpeta, primero lo mueve ahí. */
+  private async placeNear(file: TAbstractFile, target: TAbstractFile, after: boolean): Promise<void> {
+    const folder = target.parent ?? this.app.vault.getRoot();
+    if (file === target || (file instanceof TFolder && (folder === file || folder.path.startsWith(`${file.path}/`)))) return;
+    if (file.parent !== folder) await this.app.fileManager.moveFile(file, folder);
+    const names = this.sorted(folder).map((f) => f.name);
+    await this.saveOrder({ ...this.order, [folder.path]: placeName(names, file.name, target.name, after) });
   }
 
   private renderChildren(folder: TFolder, el: HTMLElement, depth: number) {
@@ -116,34 +144,45 @@ export class FileExplorerView extends ItemView {
       e.dataTransfer?.setData('text/plain', file.path);
       if (e.dataTransfer) e.dataTransfer.effectAllowed = 'copyMove';
     });
-    if (isFolder) {
-      this.setupDrop(self, () => file as TFolder);
-      if (open) this.renderChildren(file as TFolder, item.createDiv('tree-item-children'), depth + 1);
-    } else {
-      this.setupDrop(self, () => file.parent ?? this.app.vault.getRoot());
-    }
+    this.setupDrop(self, () => (isFolder ? file as TFolder : file.parent ?? this.app.vault.getRoot()), file);
+    if (open) this.renderChildren(file as TFolder, item.createDiv('tree-item-children'), depth + 1);
   }
 
-  /** Soltar: mover archivos del árbol, o importar archivos del sistema. */
-  private setupDrop(el: HTMLElement, target: () => TFolder) {
+  /**
+   * Soltar: mover archivos del árbol, o importar archivos del sistema. Sobre un ítem, el borde de arriba o de abajo
+   * lo deja antes o después (orden manual); el centro de una carpeta lo mete adentro.
+   */
+  private setupDrop(el: HTMLElement, target: () => TFolder, item?: TAbstractFile) {
+    const MARKS = ['is-drop-target', 'is-drop-before', 'is-drop-after'];
+    const clear = () => this.treeEl.querySelectorAll(MARKS.map((m) => `.${m}`).join(',')).forEach((x) => x.removeClass(...MARKS));
+    const zone = (e: DragEvent): 'before' | 'after' | 'into' => {
+      if (!item || !e.dataTransfer?.types.includes(DRAG_TYPE)) return 'into';
+      const r = el.getBoundingClientRect(), y = (e.clientY - r.top) / r.height;
+      if (item instanceof TFolder) return y < 0.25 ? 'before' : y > 0.75 ? 'after' : 'into';
+      return y < 0.5 ? 'before' : 'after';
+    };
     el.addEventListener('dragover', (e) => {
       if (!e.dataTransfer) return;
       e.preventDefault();
       e.stopPropagation();
       e.dataTransfer.dropEffect = e.dataTransfer.types.includes(DRAG_TYPE) ? 'move' : 'copy';
-      this.treeEl.querySelectorAll('.is-drop-target').forEach((x) => x.removeClass('is-drop-target'));
-      (el === this.treeEl ? el : el.closest('.tree-item-self'))?.addClass('is-drop-target');
+      clear();
+      const z = zone(e);
+      (el === this.treeEl ? el : el.closest('.tree-item-self'))?.addClass(z === 'into' ? 'is-drop-target' : `is-drop-${z}`);
     });
-    el.addEventListener('dragleave', () => el.removeClass('is-drop-target'));
+    el.addEventListener('dragleave', () => el.removeClass(...MARKS));
     el.addEventListener('drop', async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      this.treeEl.querySelectorAll('.is-drop-target').forEach((x) => x.removeClass('is-drop-target'));
+      clear();
+      const z = zone(e);
       const folder = target();
       const path = e.dataTransfer?.getData(DRAG_TYPE);
       if (path) {
         const file = this.app.vault.getAbstractFileByPath(path);
-        if (file && file.parent !== folder) await this.app.fileManager.moveFile(file, folder);
+        if (!file) return;
+        if (item && z !== 'into') await this.placeNear(file, item, z === 'after');
+        else if (file.parent !== folder) await this.app.fileManager.moveFile(file, folder);
         return;
       }
       for (const f of Array.from(e.dataTransfer?.files ?? [])) await this.app.fileManager.importFile(f, folder);
@@ -180,6 +219,12 @@ export class FileExplorerView extends ItemView {
       .addItem((i) => i.setTitle(t('cmd.newNote')).setIcon('file-plus').onClick(() => fm.createAndOpen(folder)))
       .addItem((i) => i.setTitle(t('cmd.newFolder')).setIcon('folder-plus').onClick(() => fm.promptNewFolder(folder)))
       .addItem((i) => i.setTitle(t('pdf.exportFolder')).setIcon('file-down').onClick(() => exportFolderPdf(this.app, folder.path, folder.isRoot() ? 'Melanite' : folder.name)));
+    if (this.order[folder.path]) {
+      menu.addItem((i) => i.setTitle(t('explorer.resetOrder')).setIcon('arrow-down-a-z').onClick(() => {
+        const { [folder.path]: _drop, ...rest } = this.order;
+        void this.saveOrder(rest);
+      }));
+    }
     if (!folder.isRoot()) {
       menu.addSeparator()
         .addItem((i) => i.setTitle(t('file.rename')).setIcon('pencil').onClick(() => fm.promptForRename(folder)))
