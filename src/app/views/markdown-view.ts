@@ -41,6 +41,7 @@ export class MarkdownView extends FileView {
   private modeButton: HTMLElement;
   private splitButton: HTMLElement;
   private splitTimer = 0;
+  private renderSeq = 0;
   private zoomLabel!: HTMLElement;
 
   constructor(leaf: WorkspaceLeaf) {
@@ -217,11 +218,16 @@ export class MarkdownView extends FileView {
 
   private async renderReading(): Promise<void> {
     if (!this.file) return;
-    const scroll = this.readingEl.scrollTop;
+    const seq = ++this.renderSeq;
     this.renderChild?.unload();
     this.renderChild = this.addChild(new Component());
     const el = createDiv();
     await MarkdownRenderer.render(this.app, this.getViewData(), el, this.file.path, this.renderChild);
+    // las imágenes entran ya decodificadas: si no, miden 0 al paginar y la hoja salta cuando cargan
+    await Promise.all(Array.from(el.querySelectorAll('img'), (img) => img.decode().catch(() => {})));
+    // con notas pesadas los renders se pisan (uno por tecla): solo el último toca la pantalla
+    if (seq !== this.renderSeq) return;
+    const scroll = this.readingEl.scrollTop;
     this.renderedEl.empty();
     if (this.mode === 'split') this.paginate(el);
     else this.renderedEl.appendChild(el);
