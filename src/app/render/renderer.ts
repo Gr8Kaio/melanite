@@ -4,7 +4,8 @@ import { Component } from '../../core/component';
 import type { TFile } from '../../core/vault';
 import { IMAGE_EXTS, extname } from '../../core/path';
 import { parseWikilink, resolveLinkpath } from '../../core/links';
-import { codeBlockLangs, renderHtml, splitFrontmatter } from './markdown';
+import { codeBlockLangs, pageStyle, renderHtml, splitFrontmatter } from './markdown';
+import { parseYaml } from '../../core/yaml';
 import { setIcon } from '../ui/icons';
 import { t } from '../i18n';
 
@@ -181,6 +182,14 @@ export class MarkdownRenderer {
     el.innerHTML = renderHtml(body);
     el.dataset.sourcePath = sourcePath;
     el.dataset.lineOffset = String(lineOffset);
+    // formato de hoja propio de la nota (fontsize, margin, …): lo toman las hojas de la vista previa y del PDF
+    if (yaml && depth === 0) {
+      let fm: unknown = null;
+      try { fm = parseYaml(yaml); } catch { /* frontmatter inválido: sin formato propio */ }
+      const ps = pageStyle(fm);
+      for (const [k, v] of Object.entries(ps.vars)) el.style.setProperty(k, v);
+      if (ps.numbers !== undefined) el.dataset.pageNumbers = ps.numbers ? 'on' : 'off';
+    }
     sanitize(el);
     // saltos de página como en LaTeX: la vista previa lado a lado corta la hoja ahí; en lectura no se ven
     for (const p of Array.from(el.querySelectorAll(':scope > p'))) if (/^\\(newpage|pagebreak|clearpage)$/.test(p.textContent?.trim() ?? '')) p.addClass('ml-pagebreak');

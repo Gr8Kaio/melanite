@@ -322,6 +322,45 @@ export function splitFrontmatter(text: string): { yaml: string | null; body: str
   return { yaml: m[1], body: text.slice(m[0].length), lineOffset: m[0].split('\n').length - 1 };
 }
 
+/** Propiedades del frontmatter que cambian cómo se ve la nota en hojas y en el PDF (no se muestran como propiedades). */
+export const PAGE_KEYS = ['fontsize', 'margin', 'lineheight', 'font', 'pagenumbers'] as const;
+
+const FONTS: Record<string, string> = {
+  serif: '"Latin Modern Roman", "Computer Modern", "Times New Roman", Georgia, serif',
+  sans: 'var(--font-text)',
+  mono: 'var(--font-monospace)',
+};
+
+/**
+ * Formato de hoja de una nota desde su frontmatter. Valores sin unidad: `fontsize` en pt, `margin` en mm.
+ * Lo inválido se ignora (queda el valor por defecto).
+ */
+export function pageStyle(fm: unknown): { vars: Record<string, string>; numbers?: boolean } {
+  const out: { vars: Record<string, string>; numbers?: boolean } = { vars: {} };
+  if (!fm || typeof fm !== 'object' || Array.isArray(fm)) return out;
+  const f = fm as Record<string, unknown>;
+  const size = (v: unknown, units: RegExp, def: string, min: number, max: number) => {
+    const m = /^(\d+(?:[.,]\d+)?)\s*([a-z]*)$/i.exec(String(v ?? '').trim());
+    if (!m) return null;
+    const n = Number(m[1].replace(',', '.')), unit = (m[2] || def).toLowerCase();
+    return units.test(unit) && n >= min && n <= max ? `${n}${unit}` : null;
+  };
+  const fs = size(f.fontsize, /^(pt|px)$/, 'pt', 4, 72);
+  if (fs) out.vars['--page-font-size'] = fs;
+  const mg = size(f.margin, /^(mm|cm|in|pt)$/, 'mm', 0, 100);
+  if (mg) out.vars['--page-margin'] = mg;
+  const lh = Number(String(f.lineheight ?? '').replace(',', '.'));
+  if (f.lineheight != null && lh >= 0.8 && lh <= 3) out.vars['--page-line-height'] = String(lh);
+  if (typeof f.font === 'string' && f.font.trim()) {
+    const name = f.font.trim();
+    // una palabra clave o el nombre de una fuente instalada (solo letras, números, espacios y guiones)
+    if (FONTS[name.toLowerCase()]) out.vars['--page-font'] = FONTS[name.toLowerCase()];
+    else if (/^[\p{L}\p{N} -]+$/u.test(name)) out.vars['--page-font'] = `"${name}", var(--font-text)`;
+  }
+  if (typeof f.pagenumbers === 'boolean') out.numbers = f.pagenumbers;
+  return out;
+}
+
 export function renderHtml(markdown: string): string {
   return md.render(markdown);
 }

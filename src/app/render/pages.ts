@@ -9,7 +9,14 @@ import { fitWideMath } from './renderer';
 export function paginate(src: HTMLElement, pages: HTMLElement): void {
   pages.empty();
   // cada hoja lleva una copia vacía de la raíz (clase y data-source-path/line-offset para links, tareas y doble click)
-  const addPage = () => pages.createDiv('ml-page').appendChild(src.cloneNode(false)) as HTMLElement;
+  const addPage = () => {
+    const page = pages.createDiv('ml-page');
+    // formato de la nota (frontmatter): las variables --page-* y los números de página van en la hoja
+    for (const p of Array.from(src.style)) if (p.startsWith('--page-')) page.style.setProperty(p, src.style.getPropertyValue(p));
+    if (src.style.getPropertyValue('--page-font')) page.addClass('has-font');
+    if (src.dataset.pageNumbers) page.dataset.numbers = src.dataset.pageNumbers;
+    return page.appendChild(src.cloneNode(false)) as HTMLElement;
+  };
   const blocks = Array.from(src.children) as HTMLElement[];
 
   // medir: la altura útil de una hoja vacía, después todo en una sola hoja larga

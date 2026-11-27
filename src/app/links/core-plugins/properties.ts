@@ -8,6 +8,7 @@ import { setIcon } from '../../ui/icons';
 import { Notice } from '../../ui/modal';
 import { emptyValue, propertyType, setFrontmatter, type PropertyType } from '../frontmatter';
 import { renderEmpty } from '../results';
+import { PAGE_KEYS } from '../../render/markdown';
 import { debounced, flushEditors, ensureSidePanel } from '../util';
 import { t } from '../../i18n';
 
@@ -148,9 +149,12 @@ export class PropertiesView extends ItemView {
 function renderReadingProperties(el: HTMLElement, yaml: string): void {
   let fm: Record<string, unknown>;
   try { fm = parseYaml(yaml); } catch { return; }
-  if (!fm || typeof fm !== 'object' || Array.isArray(fm) || !Object.keys(fm).length) return;
+  if (!fm || typeof fm !== 'object' || Array.isArray(fm)) return;
+  // las de formato de hoja (fontsize, margin, …) no se muestran: saldrían impresas en el PDF
+  const entries = Object.entries(fm).filter(([k]) => !(PAGE_KEYS as readonly string[]).includes(k));
+  if (!entries.length) return;
   const box = createDiv('metadata-container ml-reading-props');
-  for (const [key, value] of Object.entries(fm)) {
+  for (const [key, value] of entries) {
     const type = propertyType(key, value);
     const row = box.createDiv('ml-prop-row');
     const keyEl = row.createDiv('ml-prop-key');

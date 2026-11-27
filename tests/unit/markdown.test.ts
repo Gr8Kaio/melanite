@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parser } from '@lezer/markdown';
 import { GFM } from '@lezer/markdown';
 import { melaniteSyntax } from '../../src/app/editor/syntax';
-import { renderHtml, splitFrontmatter } from '../../src/app/render/markdown';
+import { pageStyle, renderHtml, splitFrontmatter } from '../../src/app/render/markdown';
 
 const p = parser.configure([GFM, melaniteSyntax]);
 function nodes(src: string): string[] {
@@ -83,5 +83,24 @@ describe('líneas de origen en la vista previa', () => {
     const html = renderHtml('- a\n- b\n\n| x |\n|---|\n| 1 |\n| 2 |');
     expect(html).toContain('<li data-line="1">');
     expect(html).toContain('<tr data-line="6">');
+  });
+});
+
+describe('formato de hoja por nota (frontmatter)', () => {
+  it('valores con y sin unidad', () => {
+    expect(pageStyle({ fontsize: 10, margin: 20, lineheight: 1.2 }).vars).toEqual({ '--page-font-size': '10pt', '--page-margin': '20mm', '--page-line-height': '1.2' });
+    expect(pageStyle({ fontsize: '12px', margin: '2cm' }).vars).toEqual({ '--page-font-size': '12px', '--page-margin': '2cm' });
+    expect(pageStyle({ fontsize: '10,5pt' }).vars['--page-font-size']).toBe('10.5pt');
+  });
+  it('lo inválido se ignora', () => {
+    expect(pageStyle({ fontsize: 'grande', margin: '20em', lineheight: 9, font: 'x; color: red' }).vars).toEqual({});
+    expect(pageStyle(null).vars).toEqual({});
+    expect(pageStyle('texto').vars).toEqual({});
+  });
+  it('fuente y números de página', () => {
+    expect(pageStyle({ font: 'mono' }).vars['--page-font']).toBe('var(--font-monospace)');
+    expect(pageStyle({ font: 'Cambria' }).vars['--page-font']).toBe('"Cambria", var(--font-text)');
+    expect(pageStyle({ pagenumbers: false }).numbers).toBe(false);
+    expect(pageStyle({ pagenumbers: 'si' }).numbers).toBeUndefined();
   });
 });
