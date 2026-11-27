@@ -78,6 +78,8 @@ const en: Record<keyof typeof es, string> = {
   'settings.defaultModeDesc': 'How notes open',
   'settings.readable': 'Readable line length',
   'settings.readableDesc': 'Limit the text width so it is easier to read',
+  'settings.pageNumbers': 'Page numbers',
+  'settings.pageNumbersDesc': 'Show the page number at the bottom of each sheet, in the side-by-side preview and in exported PDFs',
   'settings.spellcheck': 'Spellcheck',
   'settings.fontSize': 'Font size',
   'settings.newLocation': 'Where to create new notes',

@@ -61,6 +61,24 @@ test('vista previa en hojas: corte automático y salto manual', async ({ page })
   await expect(view.locator('.ml-page').last()).toContainText('Párrafo 59');
   await expect(view.locator('.ml-page').first()).toContainText('Párrafo 0');
   await expect(view.locator('.ml-page').first()).not.toContainText('Párrafo 59');
+  // contador de páginas: arriba de todo "1 / N", al fondo "N / N"
+  const total = await view.locator('.ml-page').count();
+  expect(total).toBeGreaterThan(1);
+  const counter = view.locator('.ml-page-counter');
+  await expect(counter).toHaveText(`1 / ${total}`);
+  await view.locator('.markdown-reading-view').evaluate((el) => { el.scrollTop = el.scrollHeight; });
+  await expect(counter).toHaveText(`${total} / ${total}`);
+  // número de página al pie: apagado por defecto, se prende en Ajustes
+  const footer = () => view.locator('.ml-page').first().evaluate((el) => getComputedStyle(el, '::after').content);
+  expect(await footer()).toBe('none');
+  await page.evaluate(async () => {
+    const { app } = window as unknown as { app: { settings: { pageNumbers: boolean }; saveSettings(): Promise<void> } };
+    app.settings.pageNumbers = true;
+    await app.saveSettings();
+  });
+  expect(await footer()).toContain('counter(ml-page)');
+  await page.screenshot({ path: `test-results/split-page-numbers-${test.info().project.name}.png` });
+  await view.locator('.markdown-reading-view').evaluate((el) => { el.scrollTop = 0; });
   // zoom: + agranda la hoja, el porcentaje vuelve a ajustar al ancho
   const zoom = () => view.locator('.ml-pages').evaluate((el) => Number((el as HTMLElement).style.zoom));
   const fit = await zoom();

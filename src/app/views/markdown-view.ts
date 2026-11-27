@@ -44,6 +44,7 @@ export class MarkdownView extends FileView {
   private renderSeq = 0;
   private zoomLabel!: HTMLElement;
   private zoomEls: HTMLElement[] = [];
+  private pageCounter!: HTMLElement;
 
   constructor(leaf: WorkspaceLeaf) {
     super(leaf);
@@ -81,6 +82,9 @@ export class MarkdownView extends FileView {
     });
     let pageTimer = 0;
     this.readingEl.addEventListener('load', () => { clearTimeout(pageTimer); pageTimer = window.setTimeout(() => this.repaginate(), 100); }, true);
+    // contador de páginas abajo a la derecha de la vista en hojas
+    this.pageCounter = this.contentEl.createDiv({ cls: 'ml-page-counter', attr: { 'aria-live': 'polite' } });
+    this.readingEl.addEventListener('scroll', () => this.updatePageCounter(), { passive: true });
     const ro = new ResizeObserver(() => this.fitPages());
     ro.observe(this.readingEl);
     this.register(() => ro.disconnect());
@@ -215,6 +219,7 @@ export class MarkdownView extends FileView {
     this.modeButton.setAttr('aria-label', reading ? t('view.editMode') : t('view.readingMode'));
     this.splitButton.toggleClass('is-active', split);
     for (const el of this.zoomEls) el.toggle(split);
+    this.pageCounter.toggle(split);
     if (reading || split) void this.renderReading();
   }
 
@@ -263,6 +268,18 @@ export class MarkdownView extends FileView {
     const z = saved || Math.min(1, (this.readingEl.clientWidth - 32) / PAGE_WIDTH);
     if (pages) pages.style.zoom = String(z);
     this.zoomLabel.setText(`${Math.round(z * 100)}%`);
+    this.updatePageCounter();
+  }
+
+  /** "3 / 9": la hoja que ocupa el tercio de arriba del panel. */
+  private updatePageCounter(): void {
+    const pages = Array.from(this.renderedEl.querySelectorAll<HTMLElement>(':scope > .ml-pages > .ml-page'));
+    this.pageCounter.toggle(this.mode === 'split' && pages.length > 0);
+    if (!pages.length) return;
+    const line = this.readingEl.getBoundingClientRect().top + this.readingEl.clientHeight / 3;
+    let i = 0;
+    while (i + 1 < pages.length && pages[i + 1].getBoundingClientRect().top <= line) i++;
+    this.pageCounter.setText(`${i + 1} / ${pages.length}`);
   }
 
   /** Zoom de la vista en hojas, en la barra de arriba junto a edición/lectura (solo en lado a lado): - y + en pasos de 10 %, click en el porcentaje vuelve a ajustar al ancho. Queda guardado para todas las notas. */

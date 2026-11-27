@@ -75,6 +75,8 @@ const es = {
   'settings.defaultModeDesc': 'Cómo se abren las notas',
   'settings.readable': 'Ancho de lectura',
   'settings.readableDesc': 'Limita el ancho del texto para que sea más cómodo de leer',
+  'settings.pageNumbers': 'Números de página',
+  'settings.pageNumbersDesc': 'Muestra el número de página al pie de cada hoja, en la vista previa lado a lado y en los PDF exportados',
   'settings.spellcheck': 'Corrector ortográfico',
   'settings.fontSize': 'Tamaño de letra',
   'settings.newLocation': 'Dónde crear las notas nuevas',

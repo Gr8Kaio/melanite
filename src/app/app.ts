@@ -30,6 +30,8 @@ export interface AppSettings {
   language: 'es' | 'en';
   defaultViewMode: 'live' | 'source' | 'reading' | 'split';
   readableLineLength: boolean;
+  /** Número de página en el pie de cada hoja (vista en hojas y PDF). */
+  pageNumbers: boolean;
   spellcheck: boolean;
   fontSize: number;
   newFileLocation: 'root' | 'current' | 'folder';
@@ -45,6 +47,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   language: 'en',
   defaultViewMode: Platform.isMobile ? 'live' : 'split', // en el teléfono no entra lado a lado
   readableLineLength: true,
+  pageNumbers: false,
   spellcheck: true,
   fontSize: 16,
   newFileLocation: 'root',
@@ -246,6 +249,7 @@ export class App extends Events {
     const dark = s.theme === 'dark' || (s.theme === 'system' && this.darkQuery.matches);
     document.body.toggleClass('theme-dark', dark);
     document.body.toggleClass('theme-light', !dark);
+    document.body.toggleClass('ml-page-numbers', s.pageNumbers);
     document.body.style.setProperty('--font-text-size', `${s.fontSize}px`);
     const vars = (m: Record<string, string>) => Object.entries(m).map(([k, v]) => `--syn-${k}: ${v};`).join(' ');
     const style = document.getElementById('ml-syntax-colors') ?? document.head.appendChild(Object.assign(document.createElement('style'), { id: 'ml-syntax-colors' }));

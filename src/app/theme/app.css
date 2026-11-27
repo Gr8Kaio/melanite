@@ -426,6 +426,12 @@ body:not(.is-mobile) .markdown-view.is-split > .markdown-source-view { flex: 0 0
 .ml-page .markdown-rendered img.ml-align-right { margin-left: 0; position: relative; left: 100%; transform: translateX(-100%); }
 .ml-page > div > :first-child { margin-top: 0; }
 .ml-pagebreak { display: none; }
+/* número de página al pie (Ajustes → Editor); la cuenta sigue de corrido entre notas al exportar una carpeta */
+.markdown-preview-view, .ml-print { counter-reset: ml-page; }
+.ml-page { counter-increment: ml-page; position: relative; }
+body.ml-page-numbers .ml-page::after { content: counter(ml-page); position: absolute; left: 0; right: 0; bottom: calc(var(--page-margin) / 2); transform: translateY(50%); text-align: center; font-size: 9pt; color: var(--text-muted); }
+/* contador "3 / 9" abajo a la derecha de la vista en hojas */
+.ml-page-counter { position: absolute; right: 24px; bottom: 10px; z-index: 2; padding: 1px 8px; border-radius: 10px; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text-muted); background: var(--background-secondary); pointer-events: none; }
 /* exportar carpeta a PDF: elegir notas y orden */
 .ml-pdf-all { display: flex; align-items: center; gap: 8px; margin: 12px 0 6px; padding: 0 8px; font-weight: 600; cursor: pointer; }
 .ml-pdf-list { max-height: 55vh; overflow-y: auto; border: 1px solid var(--background-modifier-border); border-radius: var(--radius-s); }
