@@ -312,7 +312,11 @@ input:focus, textarea:focus, select:focus { border-color: var(--interactive-acce
 
 /* ---------------------------------------------------------------- editor */
 
-.markdown-view { overflow: hidden; display: flex; flex-direction: column; }
+.markdown-view { overflow: hidden; display: flex; flex-direction: column; position: relative; }
+.ml-zoom { display: none; }
+.markdown-view.is-split > .ml-zoom { display: flex; align-items: center; gap: 2px; position: absolute; right: 16px; bottom: 16px; z-index: 2; padding: 2px; border-radius: 8px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); box-shadow: var(--shadow); }
+.ml-zoom-label { min-width: 48px; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 4px; }
+.is-mobile .ml-zoom button { min-width: 44px; min-height: 44px; }
 .markdown-source-view, .markdown-reading-view { flex: 1; min-height: 0; }
 .markdown-reading-view { overflow: auto; }
 /* lado a lado: editor (código) | vista previa; en el teléfono, uno arriba del otro */

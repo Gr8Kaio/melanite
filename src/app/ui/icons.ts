@@ -3,7 +3,7 @@ import {
   FilePlus, FolderPlus, Folder, FolderOpen, File, FileText, Image, ChevronRight, ChevronDown, Settings, X, Plus,
   PanelLeft, PanelRight, BookOpen, Pencil, Code, Trash2, Copy, Columns2, Rows2, Search, EllipsisVertical, Paperclip,
   ChevronsDownUp, Info, TriangleAlert, Lightbulb, Flame, Check, CircleQuestionMark, Quote, List, Bug, Star,
-  Menu, Link, ExternalLink, FolderInput, Sun, Moon, Monitor, Undo2, CircleX, Clipboard, ListTodo, Bookmark,
+  Menu, Link, ExternalLink, FolderInput, Sun, Moon, Monitor, Undo2, CircleX, Clipboard, ListTodo, Bookmark, ZoomIn, ZoomOut,
 } from 'lucide';
 
 /** Íconos que usa la app; el resto del set de Lucide se carga bajo demanda. */
@@ -17,6 +17,7 @@ const core: Record<string, IconNode> = {
   check: Check, 'help-circle': CircleQuestionMark, quote: Quote, list: List, bug: Bug, star: Star,
   menu: Menu, link: Link, 'external-link': ExternalLink, 'folder-input': FolderInput, sun: Sun, moon: Moon,
   monitor: Monitor, undo: Undo2, 'x-circle': CircleX, clipboard: Clipboard, 'list-todo': ListTodo, bookmark: Bookmark,
+  'zoom-in': ZoomIn, 'zoom-out': ZoomOut,
 };
 
 let all: Record<string, IconNode> | null = null;

@@ -21,6 +21,7 @@ export type MarkdownMode = 'source' | 'preview' | 'split';
 const SAVE_DELAY = 400;
 /** ancho de `.ml-page` en app.css: 210mm (A4) a 96 dpi */
 const PAGE_WIDTH = 794;
+const ZOOM_KEY = 'melanite:preview-zoom';
 
 export class MarkdownView extends FileView {
   icon = 'file-text';
@@ -40,6 +41,7 @@ export class MarkdownView extends FileView {
   private modeButton: HTMLElement;
   private splitButton: HTMLElement;
   private splitTimer = 0;
+  private zoomLabel!: HTMLElement;
 
   constructor(leaf: WorkspaceLeaf) {
     super(leaf);
@@ -48,6 +50,7 @@ export class MarkdownView extends FileView {
     this.addSplitResizer();
     this.readingEl = this.contentEl.createDiv('markdown-reading-view');
     this.renderedEl = this.readingEl.createDiv('markdown-preview-view');
+    this.addZoomControls();
     this.cm = new EditorView({ parent: this.sourceEl, state: this.newState('') });
     this.editor = new Editor(this.cm);
     const s = this.app.settings;
@@ -248,7 +251,30 @@ export class MarkdownView extends FileView {
   /** La hoja tiene tamaño fijo; si el panel es más angosto se achica entera (como un visor de PDF), sin re-fluir el texto. */
   private fitPages(): void {
     const pages = this.renderedEl.querySelector<HTMLElement>(':scope > .ml-pages');
-    if (pages) pages.style.zoom = String(Math.min(1, (this.readingEl.clientWidth - 32) / PAGE_WIDTH));
+    const saved = Number(localStorage.getItem(ZOOM_KEY));
+    const z = saved || Math.min(1, (this.readingEl.clientWidth - 32) / PAGE_WIDTH);
+    if (pages) pages.style.zoom = String(z);
+    this.zoomLabel.setText(`${Math.round(z * 100)}%`);
+  }
+
+  /** Zoom de la vista en hojas: - y + en pasos de 10 %, click en el porcentaje vuelve a ajustar al ancho. Queda guardado para todas las notas. */
+  private addZoomControls(): void {
+    const bar = this.contentEl.createDiv('ml-zoom');
+    const set = (z: number | null) => {
+      if (z === null) localStorage.removeItem(ZOOM_KEY);
+      else localStorage.setItem(ZOOM_KEY, String(Math.min(3, Math.max(0.25, Math.round(z * 10) / 10))));
+      this.fitPages();
+    };
+    const current = () => Number(this.renderedEl.querySelector<HTMLElement>(':scope > .ml-pages')?.style.zoom) || 1;
+    const btn = (icon: string, label: string, fn: () => void) => {
+      const b = bar.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': label } });
+      setIcon(b, icon);
+      b.addEventListener('click', fn);
+    };
+    btn('zoom-out', t('view.zoomOut'), () => set(current() - 0.1));
+    this.zoomLabel = bar.createEl('button', { cls: 'ml-zoom-label', attr: { 'aria-label': t('view.zoomFit') } });
+    this.zoomLabel.addEventListener('click', () => set(null));
+    btn('zoom-in', t('view.zoomIn'), () => set(current() + 0.1));
   }
 
   /** Barra entre editor y vista previa: arrastrarla cambia el ancho; el valor queda guardado para todas las notas. */

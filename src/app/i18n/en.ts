@@ -61,6 +61,9 @@ const en: Record<keyof typeof es, string> = {
   'view.livePreview': 'Live preview',
   'view.sourceMode': 'Source mode',
   'view.splitMode': 'Side by side (editor + preview)',
+  'view.zoomIn': 'Zoom in',
+  'view.zoomOut': 'Zoom out',
+  'view.zoomFit': 'Fit to width',
   'cmd.toggleSplit': 'Toggle side by side (editor + preview)',
 
   'status.count': '{words} words · {chars} characters',

@@ -58,6 +58,9 @@ const es = {
   'view.livePreview': 'Live preview',
   'view.sourceMode': 'Modo fuente',
   'view.splitMode': 'Lado a lado (editor + vista previa)',
+  'view.zoomIn': 'Acercar',
+  'view.zoomOut': 'Alejar',
+  'view.zoomFit': 'Ajustar al ancho',
   'cmd.toggleSplit': 'Alternar lado a lado (editor + vista previa)',
 
   'status.count': '{words} palabras · {chars} caracteres',
