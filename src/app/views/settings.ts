@@ -224,6 +224,8 @@ export function coreSettingTabs(app: App): SettingTab[] {
         .setValue(s.readableLineLength).onChange((v) => set('readableLineLength', v)));
       new Setting(el).setName(t('settings.pageNumbers')).setDesc(t('settings.pageNumbersDesc')).addToggle((tg) => tg
         .setValue(s.pageNumbers).onChange((v) => set('pageNumbers', v)));
+      new Setting(el).setName(t('settings.newNoteFormat')).setDesc(t('settings.newNoteFormatDesc')).addToggle((tg) => tg
+        .setValue(s.newNoteFormat).onChange((v) => set('newNoteFormat', v)));
       new Setting(el).setName(t('settings.spellcheck')).addToggle((tg) => tg.setValue(s.spellcheck).onChange((v) => set('spellcheck', v)));
       new Setting(el).setName(t('settings.fontSize')).addSlider((sl) => sl.setLimits(12, 24, 1).setValue(s.fontSize).setDynamicTooltip()
         .onChange((v) => set('fontSize', v)));

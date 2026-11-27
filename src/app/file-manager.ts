@@ -1,4 +1,5 @@
 import type { App } from './app';
+import { pageFrontmatter } from './render/markdown';
 import { TAbstractFile, TFile, TFolder } from '../core/vault';
 import { basename, dirname, extname, joinPath, normalizePath, stripExt } from '../core/path';
 import { fileToLinktext } from '../core/links';
@@ -22,15 +23,22 @@ export class FileManager {
     return vault.getRoot();
   }
 
-  async createNewMarkdownFile(name: string, sourcePath = ''): Promise<TFile> {
-    const path = newNotePath(this.app, name, sourcePath);
-    return this.app.vault.getFileByPath(path) ?? this.app.vault.create(path, '');
+  /** Texto inicial de una nota nueva: el formato de hoja en el frontmatter (Ajustes → Editor), o nada. */
+  newNoteContent(): string {
+    const s = this.app.settings;
+    return s.newNoteFormat ? pageFrontmatter(s.pageNumbers) : '';
   }
 
-  async createAndOpen(folder: TFolder, content = ''): Promise<TFile> {
+  async createNewMarkdownFile(name: string, sourcePath = ''): Promise<TFile> {
+    const path = newNotePath(this.app, name, sourcePath);
+    return this.app.vault.getFileByPath(path) ?? this.app.vault.create(path, this.newNoteContent());
+  }
+
+  async createAndOpen(folder: TFolder, content = this.newNoteContent()): Promise<TFile> {
     const path = this.app.vault.getAvailablePath(joinPath(folder.path, t('file.untitled')), 'md');
     const file = await this.app.vault.create(path, content);
-    await this.app.workspace.getLeaf(false).openFile(file);
+    // el cursor arranca al final (debajo del frontmatter), listo para escribir
+    await this.app.workspace.getLeaf(false).openFile(file, { eState: { line: content.split('\n').length - 1 } });
     return file;
   }
 

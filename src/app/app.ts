@@ -32,6 +32,8 @@ export interface AppSettings {
   readableLineLength: boolean;
   /** Número de página en el pie de cada hoja (vista en hojas y PDF). */
   pageNumbers: boolean;
+  /** Las notas nuevas arrancan con el formato de hoja en el frontmatter (fontsize, margin, …). */
+  newNoteFormat: boolean;
   spellcheck: boolean;
   fontSize: number;
   newFileLocation: 'root' | 'current' | 'folder';
@@ -48,6 +50,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   defaultViewMode: Platform.isMobile ? 'live' : 'split', // en el teléfono no entra lado a lado
   readableLineLength: true,
   pageNumbers: false,
+  newNoteFormat: true,
   spellcheck: true,
   fontSize: 16,
   newFileLocation: 'root',

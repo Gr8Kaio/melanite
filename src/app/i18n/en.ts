@@ -81,6 +81,8 @@ const en: Record<keyof typeof es, string> = {
   'settings.readableDesc': 'Limit the text width so it is easier to read',
   'settings.pageNumbers': 'Page numbers',
   'settings.pageNumbersDesc': 'Show the page number at the bottom of each sheet, in the side-by-side preview and in exported PDFs',
+  'settings.newNoteFormat': 'Sheet format in new notes',
+  'settings.newNoteFormatDesc': 'New notes start with fontsize, margin, lineheight, font and pagenumbers in the frontmatter, ready to change',
   'settings.spellcheck': 'Spellcheck',
   'settings.fontSize': 'Font size',
   'settings.newLocation': 'Where to create new notes',
