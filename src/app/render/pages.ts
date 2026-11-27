@@ -1,3 +1,5 @@
+import { fitWideMath } from './renderer';
+
 /**
  * Reparte los bloques de primer nivel de `src` en hojas A4 (`.ml-page`) dentro de `pages`,
  * que tiene que estar en el DOM y sin zoom (se mide). Lo usan la vista previa lado a lado y el PDF.
@@ -16,6 +18,7 @@ export function paginate(src: HTMLElement, pages: HTMLElement): void {
   const cs = getComputedStyle(page);
   const limit = page.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   flow.append(...blocks);
+  fitWideMath(flow); // con el ancho real de la hoja, antes de medir alturas
   const cuts = new Set<HTMLElement>();
   let start: number | null = null;
   for (const b of blocks) {

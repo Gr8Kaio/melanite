@@ -5,7 +5,7 @@ import type { App } from '../app';
 import type { Component } from '../../core/component';
 import { parseWikilink, resolveLinkpath } from '../../core/links';
 import { IMAGE_EXTS, extname } from '../../core/path';
-import { MarkdownRenderer, calloutIcon, getResourceUrl, renderMath } from '../render/renderer';
+import { MarkdownRenderer, calloutIcon, fitWideMath, getResourceUrl, renderMath } from '../render/renderer';
 import { parseImageOpts } from '../render/markdown';
 import { setIcon } from '../ui/icons';
 
@@ -91,7 +91,7 @@ class MathWidget extends LPWidget {
   eq(o: MathWidget) { return o.tex === this.tex && o.display === this.display; }
   toDOM() {
     const el = createEl(this.display ? 'div' : 'span', `math ${this.display ? 'math-block' : 'math-inline'} ml-math`);
-    void renderMath(el, this.tex, this.display);
+    void renderMath(el, this.tex, this.display).then(() => { if (this.display && el.isConnected) fitWideMath(el.parentElement ?? el); });
     return el;
   }
 }

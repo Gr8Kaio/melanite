@@ -45,7 +45,7 @@ test('modo lectura renderiza math, mermaid y callouts', async ({ page }) => {
   await page.locator('.view-action[aria-label="Reading view"]').click();
   const reading = page.locator('.markdown-preview-view');
   await expect(reading.locator('h1')).toHaveText('Welcome to Melanite');
-  await expect(reading.locator('.math-block .katex-display')).toBeVisible();
+  await expect(reading.locator('.math-block .katex')).toBeVisible();
   await expect(reading.locator('.callout[data-callout="tip"]')).toBeVisible();
   await expect(reading.locator('.callout[data-callout="warning"]')).toHaveClass(/is-collapsed/);
   await expect(reading.locator('.block-language-mermaid svg')).toBeVisible({ timeout: 15_000 });

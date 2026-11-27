@@ -39,9 +39,28 @@ export async function getResourceUrl(app: App, file: TFile): Promise<string> {
 // ---------------------------------------------------------------- math / mermaid / código
 
 let katexP: Promise<typeof import('katex')> | null = null;
+/**
+ * Las fórmulas en bloque se dibujan en modo "inline" con \displaystyle (mismo tamaño que en bloque): así KaTeX
+ * puede cortar la línea después de =, +, ⟺… cuando no entran, en vez de desbordar.
+ */
 export async function renderMath(el: HTMLElement, tex: string, display: boolean): Promise<void> {
   const katex = (await (katexP ??= import('katex'))).default;
-  katex.render(tex, el, { displayMode: display, throwOnError: false, strict: 'ignore', trust: false, output: 'htmlAndMathml' });
+  const opts = { throwOnError: false, strict: 'ignore', trust: false, output: 'htmlAndMathml' } as const;
+  if (display) {
+    // align*, equation, \tag… solo existen en modo bloque: si KaTeX rechaza el modo que corta, va en bloque (y fitWideMath lo achica)
+    try { katex.render(`\\displaystyle ${tex}`, el, { ...opts, displayMode: false, throwOnError: true }); return; } catch { /* modo bloque */ }
+  }
+  katex.render(tex, el, { ...opts, displayMode: display });
+}
+
+/** Lo que no se puede cortar (un aligned, un \left…\right enorme) se achica hasta entrar: nunca una barra de scroll. Tiene que estar en el DOM. */
+export function fitWideMath(root: HTMLElement): void {
+  for (const el of Array.from(root.querySelectorAll<HTMLElement>('.math-block'))) {
+    const k = el.querySelector<HTMLElement>(':scope > .katex, :scope > .katex-display');
+    if (!k) continue;
+    k.style.zoom = '';
+    if (el.scrollWidth > el.clientWidth + 1) k.style.zoom = String(el.clientWidth / el.scrollWidth);
+  }
 }
 
 let mermaidP: Promise<typeof import('mermaid')> | null = null;

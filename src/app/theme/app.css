@@ -376,7 +376,7 @@ body:not(.is-mobile) .markdown-view.is-split > .markdown-source-view { flex: 0 0
 .ml-frontmatter { font-family: var(--font-monospace); font-size: 0.85em; color: var(--text-muted); background: var(--background-primary-alt); }
 .ml-math-src { font-family: var(--font-monospace); font-size: 0.9em; }
 .ml-table-src { font-family: var(--font-monospace); font-size: 0.9em; }
-.ml-math.math-block { display: block; text-align: center; padding: 6px 0; overflow-x: auto; cursor: text; }
+.ml-math.math-block { display: block; text-align: center; padding: 6px 0; overflow: hidden; cursor: text; }
 .ml-image-embed { max-width: 100%; }
 .ml-image-embed img { max-width: 100%; border-radius: var(--radius-s); vertical-align: middle; }
 .ml-embed, .ml-rendered-block { cursor: text; }
@@ -478,7 +478,7 @@ body:not(.is-mobile) .markdown-view.is-split > .markdown-source-view { flex: 0 0
 .markdown-rendered .task-list-item { list-style: none; }
 .markdown-rendered .task-list-item-checkbox { margin: 0 0.45em 0 -1.4em; vertical-align: -1px; cursor: pointer; }
 .markdown-rendered .task-list-item.is-checked { color: var(--text-muted); text-decoration: line-through; }
-.markdown-rendered .math-block { overflow-x: auto; overflow-y: hidden; margin: 0.8em 0; }
+.markdown-rendered .math-block { display: block; text-align: center; overflow: hidden; margin: 0.8em 0; }
 .markdown-rendered .footnotes { font-size: 0.9em; color: var(--text-muted); }
 .markdown-rendered .footnotes-sep { margin: 2em 0 1em; }
 .markdown-rendered .block-language-mermaid { text-align: center; margin: 0.8em 0; }

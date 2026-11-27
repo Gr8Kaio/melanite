@@ -7,7 +7,7 @@ import { Component } from '../../core/component';
 import { Editor } from '../editor/editor';
 import { createEditorState, editorOptions, livePreview, modeCompartment, optionsCompartment, pluginCompartment } from '../editor/setup';
 import { lpContext, refreshLivePreview } from '../editor/live-preview';
-import { MarkdownRenderer } from '../render/renderer';
+import { MarkdownRenderer, fitWideMath } from '../render/renderer';
 import type { Menu } from '../ui/modal';
 import { setIcon } from '../ui/icons';
 import { t } from '../i18n';
@@ -232,7 +232,7 @@ export class MarkdownView extends FileView {
     const scroll = this.readingEl.scrollTop;
     this.renderedEl.empty();
     if (this.mode === 'split') this.paginate(el);
-    else this.renderedEl.appendChild(el);
+    else { this.renderedEl.appendChild(el); fitWideMath(el); }
     this.readingEl.scrollTop = scroll;
   }
 
