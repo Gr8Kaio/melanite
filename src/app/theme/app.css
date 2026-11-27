@@ -388,10 +388,11 @@ body:not(.is-mobile) .markdown-view.is-split > .markdown-source-view { flex: 0 0
 .ml-callout-icon { display: inline-flex; align-items: center; gap: 6px; vertical-align: -3px; color: rgb(var(--callout-color)); margin-right: 4px; }
 .cm-line .task-list-item-checkbox { margin: 0 0.4em 0 0; vertical-align: -2px; }
 /* tareas: círculo vacío; marcada = círculo lleno con tick */
-.task-list-item-checkbox { appearance: none; -webkit-appearance: none; width: 1.05em; height: 1.05em; border: 1.5px solid var(--text-muted); border-radius: 50%; display: inline-grid; place-content: center; cursor: pointer; vertical-align: -0.15em !important; flex-shrink: 0; }
+.task-list-item-checkbox { appearance: none; -webkit-appearance: none; position: relative; width: 1.05em; height: 1.05em; border: 1.5px solid var(--text-muted); border-radius: 50%; display: inline-block; box-sizing: border-box; cursor: pointer; vertical-align: -0.15em !important; flex-shrink: 0; }
 .task-list-item-checkbox:hover { border-color: var(--interactive-accent); }
 .task-list-item-checkbox:checked { background: var(--interactive-accent); border-color: var(--interactive-accent); }
-.task-list-item-checkbox:checked::after { content: ''; width: 0.25em; height: 0.5em; border: solid var(--text-on-accent); border-width: 0 2px 2px 0; transform: translateY(-0.06em) rotate(45deg); }
+/* el tick va en absoluto: un hijo en el flujo cambiaría la línea base y el círculo marcado bajaría */
+.task-list-item-checkbox:checked::after { content: ''; position: absolute; left: 50%; top: 45%; width: 0.25em; height: 0.5em; border: solid var(--text-on-accent); border-width: 0 2px 2px 0; transform: translate(-50%, -50%) rotate(45deg); box-sizing: border-box; }
 
 /* tokens de código (editor y lectura) */
 .ml-codeblock .tok-keyword, pre .tok-keyword { color: #c678dd; }

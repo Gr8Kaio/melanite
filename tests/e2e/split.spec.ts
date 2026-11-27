@@ -86,6 +86,9 @@ test('tareas: click en el círculo de la vista previa las marca hechas', async (
   await expect.poll(() => page.evaluate(() => (window as unknown as W).app.workspace.activeLeaf.view.editor.getValue())).toContain('- [x] comprar pan');
   await expect(boxes.first()).toBeChecked();
   await expect(boxes.nth(1)).not.toBeChecked();
+  // marcado o no, el círculo queda a la misma altura respecto de su texto
+  const offsets = await boxes.evaluateAll((els) => els.map((b) => b.getBoundingClientRect().top - b.closest('li')!.getBoundingClientRect().top));
+  expect(Math.abs(offsets[0] - offsets[1])).toBeLessThan(0.5);
   await page.screenshot({ path: `test-results/split-tasks-${test.info().project.name}.png` });
 });
 
