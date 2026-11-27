@@ -406,6 +406,14 @@ body:not(.is-mobile) .markdown-view.is-split > .markdown-source-view { flex: 0 0
 
 .markdown-preview-view { padding: 20px 32px 40vh; font-family: var(--font-text); font-size: var(--font-text-size); line-height: var(--line-height); user-select: text; -webkit-user-select: text; overflow-wrap: break-word; }
 .is-readable-line-width .markdown-preview-view > div { max-width: var(--file-line-width); margin: 0 auto; }
+/* lado a lado: hojas A4 como un visor de PDF (el ancho está repetido en PAGE_WIDTH de markdown-view.ts) */
+.markdown-view.is-split > .markdown-reading-view { background: var(--background-secondary); }
+.is-split .markdown-preview-view { padding: 16px 0; }
+.markdown-preview-view > div.ml-pages { max-width: none; width: fit-content; margin: 0 auto; }
+.ml-page { width: 794px; min-height: 1123px; padding: 76px 72px; box-sizing: border-box; margin: 0 auto 16px; background: var(--background-primary); box-shadow: var(--shadow); }
+.ml-page > div { position: relative; }
+.ml-page > div > :first-child { margin-top: 0; }
+.ml-pagebreak { display: none; }
 .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3, .markdown-rendered h4, .markdown-rendered h5, .markdown-rendered h6 { line-height: 1.3; margin: 1.2em 0 0.5em; }
 .markdown-rendered h1 { font-size: var(--h1-size); }
 .markdown-rendered h2 { font-size: var(--h2-size); }

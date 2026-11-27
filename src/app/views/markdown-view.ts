@@ -11,10 +11,14 @@ import { MarkdownRenderer } from '../render/renderer';
 import type { Menu } from '../ui/modal';
 import { setIcon } from '../ui/icons';
 import { t } from '../i18n';
+import { DRAG_TYPE } from './explorer';
+import { IMAGE_EXTS } from '../../core/path';
 
 /** 'source' = editando, 'preview' = lectura, 'split' = editor y vista previa lado a lado (como Overleaf) */
 export type MarkdownMode = 'source' | 'preview' | 'split';
 const SAVE_DELAY = 400;
+/** ancho de `.ml-page` en app.css (A4 a 96 dpi) */
+const PAGE_WIDTH = 794;
 
 export class MarkdownView extends FileView {
   icon = 'file-text';
@@ -68,6 +72,11 @@ export class MarkdownView extends FileView {
       this.cm.dispatch({ selection: { anchor: line.from }, effects: EditorView.scrollIntoView(line.from, { y: 'start', yMargin: 16 }) });
       this.cm.focus();
     });
+    let pageTimer = 0;
+    this.readingEl.addEventListener('load', () => { clearTimeout(pageTimer); pageTimer = window.setTimeout(() => this.repaginate(), 100); }, true);
+    const ro = new ResizeObserver(() => this.fitPages());
+    ro.observe(this.readingEl);
+    this.register(() => ro.disconnect());
     this.titleEl.addEventListener('click', () => { if (this.file) void this.app.fileManager.promptForRename(this.file); });
 
     // links internos dentro del modo lectura y de bloques renderizados del editor
@@ -208,8 +217,58 @@ export class MarkdownView extends FileView {
     const el = createDiv();
     await MarkdownRenderer.render(this.app, this.getViewData(), el, this.file.path, this.renderChild);
     this.renderedEl.empty();
-    this.renderedEl.appendChild(el);
+    if (this.mode === 'split') this.paginate(el);
+    else this.renderedEl.appendChild(el);
     this.readingEl.scrollTop = scroll;
+  }
+
+  /**
+   * Vista previa lado a lado como un PDF: hojas A4 con los bloques de `src` repartidos.
+   * Un párrafo que sea solo `\newpage`, `\pagebreak` o `\clearpage` fuerza el corte.
+   * ponytail: corta entre bloques de primer nivel; un bloque más alto que una hoja estira esa hoja.
+   */
+  private paginate(src: HTMLElement): void {
+    const scroll = this.readingEl.scrollTop;
+    const pages = createDiv('ml-pages');
+    this.renderedEl.empty();
+    this.renderedEl.appendChild(pages);
+    // cada hoja lleva una copia vacía de la raíz (clase y data-source-path/line-offset para links, tareas y doble click)
+    const addPage = () => pages.createDiv('ml-page').appendChild(src.cloneNode(false)) as HTMLElement;
+    const blocks = Array.from(src.children) as HTMLElement[]; // los `\newpage` ya vienen marcados `.ml-pagebreak` del renderer
+
+    // medir: la altura útil de una hoja vacía, después todo en una sola hoja larga
+    const flow = addPage();
+    const page = flow.parentElement!;
+    const cs = getComputedStyle(page);
+    const limit = page.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    flow.append(...blocks);
+    const cuts = new Set<HTMLElement>();
+    let start: number | null = null;
+    for (const b of blocks) {
+      if (b.hasClass('ml-pagebreak')) { cuts.add(b); start = null; continue; }
+      if (start === null) start = b.offsetTop;
+      else if (b.offsetTop + b.offsetHeight - start > limit) { cuts.add(b); start = b.offsetTop; }
+    }
+    pages.empty();
+    let body = addPage();
+    blocks.forEach((b, i) => { if (i > 0 && cuts.has(b)) body = addPage(); body.appendChild(b); });
+    this.fitPages();
+    this.readingEl.scrollTop = scroll;
+  }
+
+  /** Las imágenes cargan después del render y cambian alturas: se vuelve a repartir. */
+  private repaginate(): void {
+    const bodies = Array.from(this.renderedEl.querySelectorAll<HTMLElement>(':scope > .ml-pages > .ml-page > div'));
+    if (this.mode !== 'split' || !bodies.length) return;
+    const src = bodies[0].cloneNode(false) as HTMLElement;
+    src.append(...bodies.flatMap((b) => Array.from(b.children)));
+    this.paginate(src);
+  }
+
+  /** La hoja tiene tamaño fijo; si el panel es más angosto se achica entera (como un visor de PDF), sin re-fluir el texto. */
+  private fitPages(): void {
+    const pages = this.renderedEl.querySelector<HTMLElement>(':scope > .ml-pages');
+    if (pages) pages.style.zoom = String(Math.min(1, (this.readingEl.clientWidth - 32) / PAGE_WIDTH));
   }
 
   /** Barra entre editor y vista previa: arrastrarla cambia el ancho; el valor queda guardado para todas las notas. */
@@ -247,10 +306,10 @@ export class MarkdownView extends FileView {
    * que la rodean (data-line) e interpola entre ellos.
    */
   private scrollPreviewToLine(pos: number): void {
-    const root = this.renderedEl.querySelector<HTMLElement>('[data-line-offset]');
-    if (!root) return;
-    const line = this.cm.state.doc.lineAt(pos).number - 1 - Number(root.dataset.lineOffset ?? 0);
-    const blocks = Array.from(root.querySelectorAll<HTMLElement>(':scope > [data-line]'));
+    const roots = Array.from(this.renderedEl.querySelectorAll<HTMLElement>(':scope > [data-line-offset], :scope > .ml-pages > .ml-page > [data-line-offset]'));
+    if (!roots.length) return;
+    const line = this.cm.state.doc.lineAt(pos).number - 1 - Number(roots[0].dataset.lineOffset ?? 0);
+    const blocks = roots.flatMap((r) => Array.from(r.querySelectorAll<HTMLElement>(':scope > [data-line]')));
     if (!blocks.length) return;
     let i = 0;
     while (i + 1 < blocks.length && Number(blocks[i + 1].dataset.line) <= line) i++;
@@ -314,7 +373,7 @@ export class MarkdownView extends FileView {
         }),
         EditorView.domEventHandlers({
           paste: (e) => this.handleFiles(e, e.clipboardData?.files),
-          drop: (e) => this.handleFiles(e, e.dataTransfer?.files),
+          drop: (e) => this.handleVaultDrop(e) || this.handleFiles(e, e.dataTransfer?.files),
         }),
       ],
     });
@@ -331,7 +390,19 @@ export class MarkdownView extends FileView {
     this.dirty = false;
   }
 
-  private handleFiles(e: Event, files: FileList | undefined | null): boolean {
+  /** Archivo arrastrado desde el explorador: escribe su link donde se soltó (`![[img.png]]` para imágenes, `[[nota]]` para el resto). */
+  private handleVaultDrop(e: DragEvent): boolean {
+    const file = this.app.vault.getFileByPath(e.dataTransfer?.getData(DRAG_TYPE) ?? '');
+    if (!file || !this.file) return false;
+    e.preventDefault();
+    const pos = this.cm.posAtCoords({ x: e.clientX, y: e.clientY }) ?? this.cm.state.selection.main.head;
+    const insert = this.app.fileManager.generateMarkdownLink(file, this.file.path, IMAGE_EXTS.includes(file.extension));
+    this.cm.dispatch({ changes: { from: pos, insert }, selection: EditorSelection.cursor(pos + insert.length) });
+    this.cm.focus();
+    return true;
+  }
+
+  private handleFiles(e: Event,files: FileList | undefined | null): boolean {
     if (!files?.length || !this.file) return false;
     e.preventDefault();
     const pos = e instanceof DragEvent ? this.cm.posAtCoords({ x: e.clientX, y: e.clientY }) ?? this.cm.state.selection.main.head : this.cm.state.selection.main.head;

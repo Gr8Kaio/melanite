@@ -163,6 +163,8 @@ export class MarkdownRenderer {
     el.dataset.sourcePath = sourcePath;
     el.dataset.lineOffset = String(lineOffset);
     sanitize(el);
+    // saltos de página como en LaTeX: la vista previa lado a lado corta la hoja ahí; en lectura no se ven
+    for (const p of Array.from(el.querySelectorAll(':scope > p'))) if (/^\\(newpage|pagebreak|clearpage)$/.test(p.textContent?.trim() ?? '')) p.addClass('ml-pagebreak');
     buildCallouts(el);
     for (const table of Array.from(el.querySelectorAll('table'))) {
       const wrap = createDiv('table-wrapper');

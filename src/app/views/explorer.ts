@@ -7,7 +7,7 @@ import { Platform } from '../platform';
 
 export const EXPLORER_VIEW = 'file-explorer';
 const EXPANDED_KEY = 'melanite:explorer-expanded';
-const DRAG_TYPE = 'application/x-melanite-path';
+export const DRAG_TYPE = 'application/x-melanite-path';
 
 export class FileExplorerView extends ItemView {
   icon = 'folder';
@@ -113,7 +113,7 @@ export class FileExplorerView extends ItemView {
     self.addEventListener('dragstart', (e) => {
       e.dataTransfer?.setData(DRAG_TYPE, file.path);
       e.dataTransfer?.setData('text/plain', file.path);
-      if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+      if (e.dataTransfer) e.dataTransfer.effectAllowed = 'copyMove';
     });
     if (isFolder) {
       this.setupDrop(self, () => file as TFolder);

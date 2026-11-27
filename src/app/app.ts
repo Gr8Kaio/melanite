@@ -49,7 +49,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   fontSize: 16,
   newFileLocation: 'root',
   newFileFolder: '',
-  attachmentFolder: 'attachments',
+  attachmentFolder: './',
   confirmDelete: true,
   syntaxColors: { light: {}, dark: {} },
 };
