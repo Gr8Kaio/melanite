@@ -450,6 +450,7 @@ export class MarkdownView extends FileView {
     const file = root ? this.app.vault.getFileByPath(root.dataset.sourcePath ?? '') : null;
     const line = Number(box.dataset.line);
     if (!root || !file || !(line >= 0)) return;
+    if (file === this.file) await this.save(); // si no, lo tipeado y sin guardar se pisa con el archivo viejo
     const n = line + Number(root.dataset.lineOffset ?? 0);
     await this.app.vault.process(file, (text) => {
       const lines = text.split('\n');

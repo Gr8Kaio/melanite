@@ -215,10 +215,10 @@ export function latexListToHtml(src: string, inline: (s: string) => string): str
   return `<div class="latex-list">${html}</div>\n`;
 }
 
-/** "300" → ancho, "300x200" → ancho y alto (sintaxis de tamaño de imágenes de Obsidian). */
+/** "300" → ancho, "x200" → solo alto, "300x200" → ancho y alto por separado (estira la imagen). */
 export function parseSize(alias: string): { width?: string; height?: string } | null {
-  const m = /^(\d+)(?:x(\d+))?$/.exec(alias.trim());
-  return m ? { width: m[1], height: m[2] } : null;
+  const m = /^(\d+)?(?:x(\d+))?$/.exec(alias.trim());
+  return m && (m[1] || m[2]) ? { width: m[1], height: m[2] } : null;
 }
 
 export type ImageAlign = 'center' | 'left' | 'right';

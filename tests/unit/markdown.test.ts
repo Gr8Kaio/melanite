@@ -73,6 +73,8 @@ describe('tamaño de imágenes', () => {
     expect(renderHtml('![[a.png]]')).toContain('class="ml-align-center"');
     expect(renderHtml('![solo alt](a.png)')).toContain('alt="solo alt"');
     expect(renderHtml('![[a.png|300x200]]')).toContain('width="300" height="200"');
+    expect(renderHtml('![[a.png|x200]]')).toContain('<img data-vault-src="a.png" alt="a.png" height="200" class');
+    expect(renderHtml('![[a.png|x]]')).toContain('alt="x"');
   });
 });
 

@@ -73,6 +73,44 @@ test('vista previa en hojas: corte automático y salto manual', async ({ page })
   await page.screenshot({ path: `test-results/split-pages-${test.info().project.name}.png` });
 });
 
+test('tareas: click en el círculo de la vista previa las marca hechas', async ({ page }) => {
+  await page.goto('./');
+  const view = page.locator('.markdown-view.is-split').filter({ visible: true });
+  await expect(view.locator('.ml-page').first()).toBeVisible();
+  type W = { app: { workspace: { activeLeaf: { view: { editor: { setValue(s: string): void; getValue(): string } } } } } };
+  await page.evaluate(() => (window as unknown as W).app.workspace.activeLeaf.view.editor.setValue('## To do\n\n- [ ] comprar pan\n- [ ] estudiar'));
+  await expect(view.locator('.ml-page').first()).toContainText('comprar pan');
+  const boxes = view.locator('.ml-page .task-list-item-checkbox');
+  await expect(boxes.first()).toHaveCSS('border-radius', '50%');
+  await boxes.first().click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as W).app.workspace.activeLeaf.view.editor.getValue())).toContain('- [x] comprar pan');
+  await expect(boxes.first()).toBeChecked();
+  await expect(boxes.nth(1)).not.toBeChecked();
+  await page.screenshot({ path: `test-results/split-tasks-${test.info().project.name}.png` });
+});
+
+test('una imagen enorme llega al ancho de la hoja y no más', async ({ page }) => {
+  await page.goto('./');
+  const view = page.locator('.markdown-view.is-split').filter({ visible: true });
+  await expect(view.locator('.ml-page').first()).toBeVisible();
+  await page.evaluate(async () => {
+    type W = { app: { vault: { createBinary(p: string, d: ArrayBuffer): Promise<unknown> }; workspace: { activeLeaf: { view: { editor: { setValue(s: string): void } } } } } };
+    const { app } = window as unknown as W;
+    const c = document.createElement('canvas'); c.width = 40; c.height = 20;
+    c.getContext('2d')!.fillRect(0, 0, 40, 20);
+    const blob = await new Promise<Blob>((r) => c.toBlob((b) => r(b!), 'image/png'));
+    await app.vault.createBinary('grande.png', await blob.arrayBuffer());
+    app.workspace.activeLeaf.view.editor.setValue('texto\n\n![[grande.png|5000]]\n\n![](grande.png)');
+  });
+  const img = view.locator('.ml-page img').first();
+  await expect(img).toBeVisible();
+  const box = async (l: typeof img) => (await l.boundingBox())!;
+  await expect.poll(async () => Math.round((await box(img)).width)).toBe(Math.round((await box(view.locator('.ml-page').first())).width));
+  const [i, p] = [await box(img), await box(view.locator('.ml-page').first())];
+  expect(Math.abs(i.x - p.x)).toBeLessThan(2); // centrada: cubre la hoja de borde a borde
+  expect((await box(view.locator('.ml-page img').nth(1))).width).toBeLessThan(p.width / 2); // sin tamaño: queda como estaba
+});
+
 test('pegar una imagen la guarda en la carpeta de la nota', async ({ page }) => {
   await page.goto('./');
   await expect(page.locator('.cm-content')).toContainText('Welcome');

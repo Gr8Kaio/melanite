@@ -390,6 +390,11 @@ body:not(.is-mobile) .markdown-view.is-split > .markdown-source-view { flex: 0 0
 .ml-callout-title { font-weight: 600; color: rgb(var(--callout-color)); }
 .ml-callout-icon { display: inline-flex; align-items: center; gap: 6px; vertical-align: -3px; color: rgb(var(--callout-color)); margin-right: 4px; }
 .cm-line .task-list-item-checkbox { margin: 0 0.4em 0 0; vertical-align: -2px; }
+/* tareas: círculo vacío; marcada = círculo lleno con tick */
+.task-list-item-checkbox { appearance: none; -webkit-appearance: none; width: 1.05em; height: 1.05em; border: 1.5px solid var(--text-muted); border-radius: 50%; display: inline-grid; place-content: center; cursor: pointer; vertical-align: -0.15em !important; flex-shrink: 0; }
+.task-list-item-checkbox:hover { border-color: var(--interactive-accent); }
+.task-list-item-checkbox:checked { background: var(--interactive-accent); border-color: var(--interactive-accent); }
+.task-list-item-checkbox:checked::after { content: ''; width: 0.25em; height: 0.5em; border: solid var(--text-on-accent); border-width: 0 2px 2px 0; transform: translateY(-0.06em) rotate(45deg); }
 
 /* tokens de código (editor y lectura) */
 .ml-codeblock .tok-keyword, pre .tok-keyword { color: #c678dd; }
@@ -417,6 +422,10 @@ body:not(.is-mobile) .markdown-view.is-split > .markdown-source-view { flex: 0 0
 /* medidas de impresión (mm/pt valen lo mismo en pantalla que al imprimir), independientes del tamaño de letra de la app */
 .ml-page { --page-font-size: 11pt; --page-line-height: 1.45; --page-margin: 25mm; width: 210mm; min-height: 297mm; padding: var(--page-margin); box-sizing: border-box; margin: 0 auto 16px; background: var(--background-primary); box-shadow: var(--shadow); font-size: var(--page-font-size); line-height: var(--page-line-height); }
 .ml-page > div { position: relative; }
+/* en la hoja una imagen puede crecer sobre los márgenes hasta el ancho del papel (centrada: a los dos lados; izquierda/derecha: hacia el margen del otro lado) */
+.ml-page .markdown-rendered img { max-width: calc(100% + var(--page-margin)); }
+.ml-page .markdown-rendered img.ml-align-center { max-width: calc(100% + 2 * var(--page-margin)); margin-left: 0; margin-right: 0; position: relative; left: 50%; transform: translateX(-50%); }
+.ml-page .markdown-rendered img.ml-align-right { margin-left: 0; position: relative; left: 100%; transform: translateX(-100%); }
 .ml-page > div > :first-child { margin-top: 0; }
 .ml-pagebreak { display: none; }
 /* exportar a PDF: las hojas se arman fuera de pantalla (hay que medirlas) y al imprimir es lo único que se ve */
