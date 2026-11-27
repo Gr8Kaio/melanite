@@ -37,3 +37,22 @@ test('sugerencias de LaTeX: comandos y entornos', async ({ page }) => {
     return app.getActiveMarkdownView()?.getViewData() ?? '';
   })).toMatch(/\$\$\n\\begin\{align\*\}\n[^\n]*&=[^\n]*\\\\\n[^\n]*&=[^\n]*\n\\end\{align\*\}$/); // ya estaba dentro de $$: no se vuelve a envolver ni sobra una }
 });
+
+test('\\cl sugiere \\clearpage fuera de las fórmulas', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.locator('.cm-content')).toContainText('Welcome');
+  await page.evaluate(async () => {
+    const app = (window as unknown as { app: any }).app;
+    const f = await app.vault.create('Saltos.md', 'texto\n\n');
+    await app.workspace.getLeaf(false).openFile(f, { state: { mode: 'source', source: true } });
+  });
+  const editor = page.locator('.cm-content').filter({ visible: true });
+  await editor.click();
+  await page.keyboard.press('Control+End');
+  await page.keyboard.type('\\cl');
+  const menu = page.locator('.cm-tooltip-autocomplete');
+  await expect(menu).toContainText('\\clearpage');
+  await page.waitForTimeout(150); // CodeMirror ignora Enter en los primeros 75 ms del menú
+  await page.keyboard.press('Enter');
+  await expect.poll(() => page.evaluate(() => (window as unknown as { app: any }).app.getActiveMarkdownView()?.getViewData() ?? '')).toBe('texto\n\n\\clearpage');
+});

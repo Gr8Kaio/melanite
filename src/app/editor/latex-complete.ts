@@ -20,6 +20,7 @@ registerStrings({
     'latex.close': 'cerrar entorno',
     'latex.mathEnv': 'fórmula ($$)',
     'latex.listEnv': 'lista',
+    'latex.pageBreak': 'salto de página',
   },
   en: {
     'latex.plugin': 'LaTeX suggestions',
@@ -28,6 +29,7 @@ registerStrings({
     'latex.close': 'close environment',
     'latex.mathEnv': 'formula ($$)',
     'latex.listEnv': 'list',
+    'latex.pageBreak': 'page break',
   },
 });
 
@@ -220,6 +222,8 @@ const TEXT_COMMANDS: Completion[] = [
   BEGIN_OPTION,
   snippetCompletion('\\item ${}', { label: '\\item', detail: '•', type: 'keyword' }),
   snippetCompletion('\\item[${}] ${}', { label: '\\item[]', detail: 'description', type: 'keyword' }),
+  // saltos de página de la vista en hojas y el PDF (van solos en su línea)
+  ...['clearpage', 'newpage', 'pagebreak'].map((n): Completion => ({ label: `\\${n}`, detail: t('latex.pageBreak'), type: 'keyword' })),
 ];
 
 /** Entorno abierto más cercano antes de `pos` que todavía no se cerró. */

@@ -24,6 +24,9 @@ describe('sugerencias de LaTeX', () => {
     // fuera de fórmulas solo se ofrecen \begin e \item
     expect(labels(complete('texto \\fr|'))).not.toContain('\\frac');
     expect(labels(complete('texto \\it|'))).toContain('\\item');
+    expect(labels(complete('\\cl|'))).toContain('\\clearpage');
+    expect(labels(complete('\\new|'))).toContain('\\newpage');
+    expect(labels(complete('$\\cl|$'))).not.toContain('\\clearpage'); // dentro de una fórmula no es un salto de página
     expect(labels(complete('$\\fr|$'))).toContain('\\frac');
     expect(labels(complete('$$\n\\al|\n$$'))).toContain('\\alpha');
     // fórmula todavía sin cerrar
