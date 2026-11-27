@@ -663,3 +663,6 @@ body.ml-page-numbers .ml-page:not([data-numbers=off])::after, .ml-page[data-numb
 .ml-quote-text { color: var(--syn-quote); }
 .ml-tag-text, .ml-tag { color: var(--syn-tag); }
 .ml-formatting { color: var(--syn-formatting); }
+
+/* Ajustes: frontmatter de las notas nuevas */
+textarea.ml-frontmatter-template { width: 100%; min-width: 240px; font-family: var(--font-monospace); font-size: 0.85em; }

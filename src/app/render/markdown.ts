@@ -364,9 +364,11 @@ export function splitFrontmatter(text: string): { yaml: string | null; body: str
 /** Propiedades del frontmatter que cambian cómo se ve la nota en hojas y en el PDF (no se muestran como propiedades). */
 export const PAGE_KEYS = ['fontsize', 'margin', 'lineheight', 'font', 'pagenumbers'] as const;
 
-/** Frontmatter con el formato de hoja por defecto (los mismos valores que .ml-page en app.css), para las notas nuevas. */
-export function pageFrontmatter(pageNumbers: boolean): string {
-  return `---\nfontsize: 11\nmargin: 25\nlineheight: 1.45\nfont: sans\npagenumbers: ${pageNumbers}\n---\n\n`;
+/** Frontmatter inicial de una nota nueva (se edita en Ajustes → Editor). Vacío = sin frontmatter; sin `---` se le agregan. */
+export function newNoteText(frontmatter: string): string {
+  const fm = frontmatter.trim();
+  if (!fm) return '';
+  return `${fm.startsWith('---') ? fm : `---\n${fm}\n---`}\n\n`;
 }
 
 const FONTS: Record<string, string> = {

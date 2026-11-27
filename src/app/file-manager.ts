@@ -1,5 +1,5 @@
 import type { App } from './app';
-import { pageFrontmatter } from './render/markdown';
+import { newNoteText } from './render/markdown';
 import { TAbstractFile, TFile, TFolder } from '../core/vault';
 import { basename, dirname, extname, joinPath, normalizePath, stripExt } from '../core/path';
 import { fileToLinktext } from '../core/links';
@@ -23,10 +23,9 @@ export class FileManager {
     return vault.getRoot();
   }
 
-  /** Texto inicial de una nota nueva: el formato de hoja en el frontmatter (Ajustes → Editor), o nada. */
+  /** Texto inicial de una nota nueva: el frontmatter de Ajustes → Editor (vacío = nada). */
   newNoteContent(): string {
-    const s = this.app.settings;
-    return s.newNoteFormat ? pageFrontmatter(s.pageNumbers) : '';
+    return newNoteText(this.app.settings.newNoteFrontmatter);
   }
 
   async createNewMarkdownFile(name: string, sourcePath = ''): Promise<TFile> {
