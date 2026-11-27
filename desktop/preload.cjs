@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('melaniteDesktop', {
     onProgress: on('update:progress'),
     onDownloaded: on('update:downloaded'),
   },
+  pdf: { save: (name) => ipcRenderer.invoke('pdf:save', name) },
   folder: {
     get: () => ipcRenderer.invoke('folder:get'),
     choose: () => ipcRenderer.invoke('folder:choose'),

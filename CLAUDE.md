@@ -125,7 +125,8 @@ app.sync.on('conflict', (c: SyncConflict) => …) // además el módulo ya muest
 | cuenta / login | `src/app/account/` | `install()` | hecho (pestaña Sync, OTP sin magic links) |
 | escritorio (Electron) | `desktop/`, `src/app/desktop/` | `install()` (no hace nada fuera de Electron) | instalador NSIS + updater; **vault como carpeta real**: espejo en los dos sentidos (`folder-mirror.ts`), el disco solo se toca desde `desktop/folder.cjs` y dentro de la carpeta elegida; borrar = papelera de Windows; los ecos de nuestras propias escrituras se ignoran por hash |
 | actualizaciones | `src/app/updates.ts` | Ajustes → About | escritorio: electron-updater (IPC `update:*`); web: `registration.update()` del service worker |
-| graph, temas, import/export, PDF (fase 5) | a definir | — | pendiente |
+| PDF (fase 5) | `src/app/pdf.ts`, `src/app/render/pages.ts` | `exportPdf(app, files, name)` | hecho: hojas A4 compartidas con la vista previa lado a lado; escritorio `printToPDF` (IPC `pdf:save`), web `window.print()` |
+| graph, temas, import/export (fase 5) | a definir | — | pendiente |
 
 **Puntos de extensión compartidos** (se puede agregar, no modificar lo existente):
 - Textos: `registerStrings({ es, en })` desde tu módulo, con claves prefijadas por el módulo (`search.*`, `plugins.*`, `mobile.*`), completas en los dos idiomas. No tocar `es.ts`/`en.ts`. En tests e2e usá los textos en inglés o selectores que no dependan del idioma.

@@ -2,6 +2,7 @@ import { ItemView, FileView } from './view';
 import { TAbstractFile, TFile, TFolder } from '../../core/vault';
 import { setIcon } from '../ui/icons';
 import { Menu, onContextMenu } from '../ui/modal';
+import { exportPdf, notesIn } from '../pdf';
 import { t } from '../i18n';
 import { Platform } from '../platform';
 
@@ -165,8 +166,9 @@ export class FileExplorerView extends ItemView {
       .addItem((i) => i.setTitle(t('file.rename')).setIcon('pencil').onClick(() => fm.promptForRename(file)))
       .addItem((i) => i.setTitle(t('file.moveTo')).setIcon('folder-input').onClick(() => fm.promptMove(file)))
       .addItem((i) => i.setTitle(t('file.duplicate')).setIcon('copy').onClick(() => fm.duplicate(file)))
-      .addItem((i) => i.setTitle(t('file.copyPath')).setIcon('clipboard').onClick(() => navigator.clipboard?.writeText(file.path)))
-      .addSeparator()
+      .addItem((i) => i.setTitle(t('file.copyPath')).setIcon('clipboard').onClick(() => navigator.clipboard?.writeText(file.path)));
+    if (file.extension === 'md') menu.addItem((i) => i.setTitle(t('pdf.export')).setIcon('file-down').onClick(() => exportPdf(this.app, [file], file.basename)));
+    menu.addSeparator()
       .addItem((i) => i.setTitle(t('file.delete')).setIcon('trash').setWarning(true).onClick(() => fm.promptForDeletion(file)));
     ws.trigger('file-menu', menu, file, 'file-explorer'); // los plugins agregan ítems (como en Obsidian)
     return menu;
@@ -176,7 +178,8 @@ export class FileExplorerView extends ItemView {
     const fm = this.app.fileManager;
     const menu = new Menu()
       .addItem((i) => i.setTitle(t('cmd.newNote')).setIcon('file-plus').onClick(() => fm.createAndOpen(folder)))
-      .addItem((i) => i.setTitle(t('cmd.newFolder')).setIcon('folder-plus').onClick(() => fm.promptNewFolder(folder)));
+      .addItem((i) => i.setTitle(t('cmd.newFolder')).setIcon('folder-plus').onClick(() => fm.promptNewFolder(folder)))
+      .addItem((i) => i.setTitle(t('pdf.exportFolder')).setIcon('file-down').onClick(() => exportPdf(this.app, notesIn(this.app, folder.path), folder.isRoot() ? 'Melanite' : folder.name)));
     if (!folder.isRoot()) {
       menu.addSeparator()
         .addItem((i) => i.setTitle(t('file.rename')).setIcon('pencil').onClick(() => fm.promptForRename(folder)))

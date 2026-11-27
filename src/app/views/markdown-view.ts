@@ -12,12 +12,14 @@ import type { Menu } from '../ui/modal';
 import { setIcon } from '../ui/icons';
 import { t } from '../i18n';
 import { DRAG_TYPE } from './explorer';
+import { paginate } from '../render/pages';
+import { exportPdf } from '../pdf';
 import { IMAGE_EXTS } from '../../core/path';
 
 /** 'source' = editando, 'preview' = lectura, 'split' = editor y vista previa lado a lado (como Overleaf) */
 export type MarkdownMode = 'source' | 'preview' | 'split';
 const SAVE_DELAY = 400;
-/** ancho de `.ml-page` en app.css (A4 a 96 dpi) */
+/** ancho de `.ml-page` en app.css: 210mm (A4) a 96 dpi */
 const PAGE_WIDTH = 794;
 
 export class MarkdownView extends FileView {
@@ -167,6 +169,7 @@ export class MarkdownView extends FileView {
     menu.addSeparator();
     menu.addItem((i) => i.setTitle(t('file.rename')).setIcon('pencil').onClick(() => this.app.fileManager.promptForRename(file)));
     menu.addItem((i) => i.setTitle(t('file.copyPath')).setIcon('copy').onClick(() => navigator.clipboard?.writeText(file.path)));
+    menu.addItem((i) => i.setTitle(t('pdf.export')).setIcon('file-down').onClick(async () => { await this.save(); await exportPdf(this.app, [file], file.basename); }));
     menu.addItem((i) => i.setTitle(t('file.delete')).setIcon('trash').setWarning(true).onClick(() => this.app.fileManager.promptForDeletion(file)));
     menu.addSeparator();
   }
@@ -222,36 +225,13 @@ export class MarkdownView extends FileView {
     this.readingEl.scrollTop = scroll;
   }
 
-  /**
-   * Vista previa lado a lado como un PDF: hojas A4 con los bloques de `src` repartidos.
-   * Un párrafo que sea solo `\newpage`, `\pagebreak` o `\clearpage` fuerza el corte.
-   * ponytail: corta entre bloques de primer nivel; un bloque más alto que una hoja estira esa hoja.
-   */
+  /** Vista previa lado a lado como un PDF: hojas A4 (las mismas que salen al exportar). */
   private paginate(src: HTMLElement): void {
     const scroll = this.readingEl.scrollTop;
     const pages = createDiv('ml-pages');
     this.renderedEl.empty();
     this.renderedEl.appendChild(pages);
-    // cada hoja lleva una copia vacía de la raíz (clase y data-source-path/line-offset para links, tareas y doble click)
-    const addPage = () => pages.createDiv('ml-page').appendChild(src.cloneNode(false)) as HTMLElement;
-    const blocks = Array.from(src.children) as HTMLElement[]; // los `\newpage` ya vienen marcados `.ml-pagebreak` del renderer
-
-    // medir: la altura útil de una hoja vacía, después todo en una sola hoja larga
-    const flow = addPage();
-    const page = flow.parentElement!;
-    const cs = getComputedStyle(page);
-    const limit = page.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-    flow.append(...blocks);
-    const cuts = new Set<HTMLElement>();
-    let start: number | null = null;
-    for (const b of blocks) {
-      if (b.hasClass('ml-pagebreak')) { cuts.add(b); start = null; continue; }
-      if (start === null) start = b.offsetTop;
-      else if (b.offsetTop + b.offsetHeight - start > limit) { cuts.add(b); start = b.offsetTop; }
-    }
-    pages.empty();
-    let body = addPage();
-    blocks.forEach((b, i) => { if (i > 0 && cuts.has(b)) body = addPage(); body.appendChild(b); });
+    paginate(src, pages);
     this.fitPages();
     this.readingEl.scrollTop = scroll;
   }

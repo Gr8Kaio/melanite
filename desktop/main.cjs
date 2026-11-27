@@ -1,5 +1,5 @@
 // Proceso principal de la app de escritorio. Carga dist-desktop/ por el protocolo app://melanite/
-const { app, BrowserWindow, protocol, shell, dialog, Menu } = require('electron');
+const { app, BrowserWindow, protocol, shell, dialog, Menu, ipcMain } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -101,6 +101,18 @@ if (!app.requestSingleInstanceLock()) {
     require('./folder.cjs').register(() => win);
     createWindow();
     require('./updater.cjs').register(() => win);
+    // exportar a PDF: la página ya dejó visibles solo las hojas (@media print); se guarda donde elija el usuario y se abre
+    ipcMain.handle('pdf:save', async (e, name) => {
+      const safe = String(name || 'nota').replace(/[\\/:*?"<>|]/g, '-');
+      const { canceled, filePath } = await dialog.showSaveDialog(BrowserWindow.fromWebContents(e.sender), {
+        defaultPath: path.join(app.getPath('documents'), `${safe}.pdf`), filters: [{ name: 'PDF', extensions: ['pdf'] }],
+      });
+      if (canceled || !filePath) return null;
+      const data = await e.sender.printToPDF({ pageSize: 'A4', printBackground: true, preferCSSPageSize: true, margins: { marginType: 'none' } });
+      await fs.promises.writeFile(filePath, data);
+      void shell.openPath(filePath);
+      return filePath;
+    });
   });
   app.on('window-all-closed', () => app.quit());
 }

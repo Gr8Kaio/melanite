@@ -2,6 +2,7 @@ import type { App } from './app';
 import { MarkdownView } from './views/markdown-view';
 import { EXPLORER_VIEW, FileExplorerView } from './views/explorer';
 import { t } from './i18n';
+import { exportPdf } from './pdf';
 
 /** Comandos básicos de la app (los plugins agregan los suyos con addCommand). */
 export function registerCoreCommands(app: App): void {
@@ -20,6 +21,13 @@ export function registerCoreCommands(app: App): void {
     checkCallback: (checking) => { const f = activeFile(); if (f && !checking) void app.fileManager.promptForDeletion(f); return !!f; } });
   add({ id: 'file:move', name: t('file.moveTo'), icon: 'folder-input',
     checkCallback: (checking) => { const f = activeFile(); if (f && !checking) void app.fileManager.promptMove(f); return !!f; } });
+  add({ id: 'file:export-pdf', name: t('pdf.export'), icon: 'file-down',
+    checkCallback: (checking) => {
+      const f = activeFile();
+      if (!f || f.extension !== 'md') return false;
+      if (!checking) void (async () => { await (ws.getActiveViewOfType(MarkdownView)?.save()); await exportPdf(app, [f], f.basename); })();
+      return true;
+    } });
   add({ id: 'file:reveal', name: t('cmd.reveal'), icon: 'folder-open',
     checkCallback: (checking) => {
       const f = activeFile();
