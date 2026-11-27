@@ -6,7 +6,7 @@ import type { Component } from '../../core/component';
 import { parseWikilink, resolveLinkpath } from '../../core/links';
 import { IMAGE_EXTS, extname } from '../../core/path';
 import { MarkdownRenderer, calloutIcon, fitWideMath, getResourceUrl, renderMath } from '../render/renderer';
-import { parseImageOpts } from '../render/markdown';
+import { HEADING_NUMBER_RE, numberHeadings, parseImageOpts } from '../render/markdown';
 import { setIcon } from '../ui/icons';
 
 /**
@@ -44,6 +44,13 @@ abstract class LPWidget extends WidgetType {
     if (e.type === 'mousedown') return !!(e.target as HTMLElement).closest('a, input, button, .ml-interactive');
     return true;
   }
+}
+
+/** Número de un título `## #. …` (lo calcula numberHeadings). */
+class HeadingNumberWidget extends LPWidget {
+  constructor(readonly label: string) { super(); }
+  eq(o: HeadingNumberWidget) { return o.label === this.label; }
+  toDOM() { return createSpan({ cls: 'ml-heading-number', text: this.label }); }
 }
 
 class HrWidget extends LPWidget {
@@ -167,6 +174,20 @@ function build(state: EditorState, version: number): DecorationSet {
   const block = (from: number, to: number, widget: WidgetType) =>
     out.push(Decoration.replace({ widget, block: true }).range(doc.lineAt(from).from, doc.lineAt(to).to));
 
+  // títulos numerados: primero todos los títulos de la nota en orden (el número depende de los anteriores)
+  const heads: { from: number; mark: number; level: number; numbered: boolean }[] = [];
+  syntaxTree(state).iterate({
+    enter: (n) => {
+      if (!n.name.startsWith('ATXHeading')) return;
+      const mark = n.node.getChild('HeaderMark');
+      const start = mark ? mark.to + (text(mark.to, mark.to + 1) === ' ' ? 1 : 0) : n.from;
+      heads.push({ from: n.from, mark: start, level: Number(n.name.slice(10)), numbered: HEADING_NUMBER_RE.test(text(start, n.to)) });
+      return false;
+    },
+  });
+  const headLabels = new Map<number, { at: number; label: string }>();
+  numberHeadings(heads).forEach((label, i) => { if (label) headLabels.set(heads[i].from, { at: heads[i].mark, label }); });
+
   // ponytail: recorre el documento entero en cada cambio; limitar al viewport si notas muy largas se ponen lentas
   syntaxTree(state).iterate({
     enter: (n) => {
@@ -180,6 +201,8 @@ function build(state: EditorState, version: number): DecorationSet {
             if (m.from === n.from) hide(m.from, m.to + (text(m.to, m.to + 1) === ' ' ? 1 : 0));
             else hide(m.from - (text(m.from - 1, m.from) === ' ' ? 1 : 0), m.to);
           }
+          const num = headLabels.get(n.from);
+          if (num) replace(num.at, num.at + 2, new HeadingNumberWidget(num.label));
         }
         return;
       }

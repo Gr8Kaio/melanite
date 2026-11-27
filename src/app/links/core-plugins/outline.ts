@@ -3,6 +3,7 @@ import { ItemView } from '../../views/view';
 import { renderEmpty } from '../results';
 import { debounced, openAtLine, ensureSidePanel } from '../util';
 import { t } from '../../i18n';
+import { HEADING_NUMBER_RE, numberHeadings } from '../../render/markdown';
 
 export const OUTLINE_VIEW = 'outline';
 
@@ -27,12 +28,13 @@ export class OutlineView extends ItemView {
     const headings = this.app.metadataCache.getFileCache(file)?.headings ?? [];
     if (!headings.length) { renderEmpty(el, t('links.noHeadings')); return; }
     const min = Math.min(...headings.map((h) => h.level));
-    for (const h of headings) {
+    const labels = numberHeadings(headings.map((h) => ({ level: h.level, numbered: HEADING_NUMBER_RE.test(h.heading) })));
+    headings.forEach((h, i) => {
       const item = el.createDiv({ cls: 'ml-tree-item ml-outline-item', attr: { 'data-level': h.level } });
       item.style.setProperty('--depth', String(h.level - min));
-      item.createDiv({ cls: 'tree-item-inner', text: h.heading });
+      item.createDiv({ cls: 'tree-item-inner', text: labels[i] ? h.heading.replace(HEADING_NUMBER_RE, labels[i]!) : h.heading });
       item.addEventListener('click', () => void openAtLine(this.app, file, h.position.start.line, false, { subpath: `#${h.heading}` }));
-    }
+    });
   }
 }
 

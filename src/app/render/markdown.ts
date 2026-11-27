@@ -251,6 +251,45 @@ md.inline.ruler.push('ml_tag', tagRule);
 md.block.ruler.before('fence', 'ml_math_block', blockMathRule, { alt: ['paragraph', 'reference', 'blockquote', 'list'] });
 md.block.ruler.before('fence', 'ml_latex_list', latexListRule, { alt: ['paragraph', 'reference', 'blockquote', 'list'] });
 md.core.ruler.after('inline', 'ml_tasks', taskRule);
+
+// ---------------------------------------------------------------- títulos numerados (`## #. Título` → `## 2. Título`)
+
+/** Marcador de título numerado: `#.` al principio del texto del título. */
+export const HEADING_NUMBER_RE = /^#\.(?=\s|$)/;
+
+/**
+ * Números de los títulos marcados con `#.`, como \section/\subsection de LaTeX: el nivel más alto marcado es 1, 2, 3…
+ * y los de adentro 2.1, 2.2… Los títulos sin marcador no cuentan. Devuelve null para los no marcados.
+ */
+export function numberHeadings(hs: { level: number; numbered: boolean }[]): (string | null)[] {
+  const levels = hs.filter((h) => h.numbered).map((h) => h.level);
+  const top = levels.length ? Math.min(...levels) : 0;
+  const count: number[] = [];
+  return hs.map((h) => {
+    if (!h.numbered) return null;
+    const d = h.level - top;
+    count.length = d + 1;
+    for (let i = 0; i < d; i++) count[i] ??= 0;
+    count[d] = (count[d] ?? 0) + 1;
+    return d === 0 ? `${count[0]}.` : count.join('.');
+  });
+}
+
+md.core.ruler.after('inline', 'ml_heading_numbers', (state) => {
+  const heads: { inline: Token; level: number; numbered: boolean }[] = [];
+  state.tokens.forEach((tok, i) => {
+    const inline = state.tokens[i + 1];
+    if (tok.type === 'heading_open' && inline?.type === 'inline') heads.push({ inline, level: Number(tok.tag.slice(1)), numbered: HEADING_NUMBER_RE.test(inline.content) });
+  });
+  if (!heads.some((h) => h.numbered)) return;
+  numberHeadings(heads).forEach((label, i) => {
+    if (!label) return;
+    const { inline } = heads[i];
+    inline.content = inline.content.replace(HEADING_NUMBER_RE, label);
+    const first = inline.children?.[0];
+    if (first?.type === 'text') first.content = first.content.replace(HEADING_NUMBER_RE, label);
+  });
+});
 // línea de origen de cada bloque de primer nivel (para alinear la vista previa con el editor),
 // y de cada ítem de lista y fila de tabla (para que el doble click caiga en la línea justa)
 md.core.ruler.push('ml_lines', (state) => {

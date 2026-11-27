@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parser } from '@lezer/markdown';
 import { GFM } from '@lezer/markdown';
 import { melaniteSyntax } from '../../src/app/editor/syntax';
-import { pageStyle, renderHtml, splitFrontmatter } from '../../src/app/render/markdown';
+import { numberHeadings, pageStyle, renderHtml, splitFrontmatter } from '../../src/app/render/markdown';
 
 const p = parser.configure([GFM, melaniteSyntax]);
 function nodes(src: string): string[] {
@@ -102,5 +102,26 @@ describe('formato de hoja por nota (frontmatter)', () => {
     expect(pageStyle({ font: 'Cambria' }).vars['--page-font']).toBe('"Cambria", var(--font-text)');
     expect(pageStyle({ pagenumbers: false }).numbers).toBe(false);
     expect(pageStyle({ pagenumbers: 'si' }).numbers).toBeUndefined();
+  });
+});
+
+describe('títulos numerados con #.', () => {
+  const h = (level: number, numbered = true) => ({ level, numbered });
+  it('como secciones de LaTeX: el nivel más alto marcado es 1, 2, 3…; los de adentro 2.1, 2.2', () => {
+    expect(numberHeadings([h(1, false), h(2), h(2), h(3), h(3), h(2, false), h(2), h(3)]))
+      .toEqual([null, '1.', '2.', '2.1', '2.2', null, '3.', '3.1']);
+  });
+  it('sin marcados no hay números; un nivel salteado arranca en 0', () => {
+    expect(numberHeadings([h(1, false), h(2, false)])).toEqual([null, null]);
+    expect(numberHeadings([h(3), h(2)])).toEqual(['0.1', '1.']);
+  });
+  it('en el HTML el marcador se reemplaza por el número', () => {
+    const html = renderHtml('# Título\n\n## #. Hipótesis\n\n## #. Ecuaciones\n\n### #. Equilibrio\n\n## Gráfico\n\n## #. Empuje');
+    expect(html).toContain('>1. Hipótesis</h2>');
+    expect(html).toContain('>2. Ecuaciones</h2>');
+    expect(html).toContain('>2.1 Equilibrio</h3>');
+    expect(html).toContain('>Gráfico</h2>');
+    expect(html).toContain('>3. Empuje</h2>');
+    expect(renderHtml('## #.sin espacio')).toContain('#.sin espacio'); // solo con espacio después
   });
 });
