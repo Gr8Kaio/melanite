@@ -43,6 +43,7 @@ export class MarkdownView extends FileView {
   private splitTimer = 0;
   private renderSeq = 0;
   private zoomLabel!: HTMLElement;
+  private zoomEls: HTMLElement[] = [];
 
   constructor(leaf: WorkspaceLeaf) {
     super(leaf);
@@ -51,7 +52,6 @@ export class MarkdownView extends FileView {
     this.addSplitResizer();
     this.readingEl = this.contentEl.createDiv('markdown-reading-view');
     this.renderedEl = this.readingEl.createDiv('markdown-preview-view');
-    this.addZoomControls();
     this.cm = new EditorView({ parent: this.sourceEl, state: this.newState('') });
     this.editor = new Editor(this.cm);
     const s = this.app.settings;
@@ -61,6 +61,7 @@ export class MarkdownView extends FileView {
     this.splitButton = this.addAction('columns-2', t('view.splitMode'), () => this.toggleSplit());
     this.splitButton.addClass('mod-split');
     this.modeButton = this.addAction('book-open', t('view.toggleMode'), () => this.toggleMode());
+    this.addZoomControls();
     // lado a lado: scroll independiente; doble click en una línea lleva la vista previa ahí
     this.cm.contentDOM.addEventListener('dblclick', (e) => {
       if (this.mode !== 'split') return;
@@ -213,6 +214,7 @@ export class MarkdownView extends FileView {
     setIcon(this.modeButton, reading ? 'pencil' : 'book-open');
     this.modeButton.setAttr('aria-label', reading ? t('view.editMode') : t('view.readingMode'));
     this.splitButton.toggleClass('is-active', split);
+    for (const el of this.zoomEls) el.toggle(split);
     if (reading || split) void this.renderReading();
   }
 
@@ -263,24 +265,21 @@ export class MarkdownView extends FileView {
     this.zoomLabel.setText(`${Math.round(z * 100)}%`);
   }
 
-  /** Zoom de la vista en hojas: - y + en pasos de 10 %, click en el porcentaje vuelve a ajustar al ancho. Queda guardado para todas las notas. */
+  /** Zoom de la vista en hojas, en la barra de arriba junto a edición/lectura (solo en lado a lado): - y + en pasos de 10 %, click en el porcentaje vuelve a ajustar al ancho. Queda guardado para todas las notas. */
   private addZoomControls(): void {
-    const bar = this.contentEl.createDiv('ml-zoom');
     const set = (z: number | null) => {
       if (z === null) localStorage.removeItem(ZOOM_KEY);
       else localStorage.setItem(ZOOM_KEY, String(Math.min(3, Math.max(0.25, Math.round(z * 10) / 10))));
       this.fitPages();
     };
     const current = () => Number(this.renderedEl.querySelector<HTMLElement>(':scope > .ml-pages')?.style.zoom) || 1;
-    const btn = (icon: string, label: string, fn: () => void) => {
-      const b = bar.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': label } });
-      setIcon(b, icon);
-      b.addEventListener('click', fn);
-    };
-    btn('zoom-out', t('view.zoomOut'), () => set(current() - 0.1));
-    this.zoomLabel = bar.createEl('button', { cls: 'ml-zoom-label', attr: { 'aria-label': t('view.zoomFit') } });
+    // addAction inserta a la izquierda: se agregan de derecha a izquierda
+    const zoomIn = this.addAction('zoom-in', t('view.zoomIn'), () => set(current() + 0.1));
+    this.zoomLabel = createDiv({ cls: 'clickable-icon view-action ml-zoom-label', attr: { 'aria-label': t('view.zoomFit'), title: t('view.zoomFit') } });
     this.zoomLabel.addEventListener('click', () => set(null));
-    btn('zoom-in', t('view.zoomIn'), () => set(current() + 0.1));
+    this.actionsEl.insertBefore(this.zoomLabel, this.actionsEl.firstChild);
+    const zoomOut = this.addAction('zoom-out', t('view.zoomOut'), () => set(current() - 0.1));
+    this.zoomEls = [zoomOut, this.zoomLabel, zoomIn];
   }
 
   /** Barra entre editor y vista previa: arrastrarla cambia el ancho; el valor queda guardado para todas las notas. */

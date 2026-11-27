@@ -64,11 +64,11 @@ test('vista previa en hojas: corte automático y salto manual', async ({ page })
   // zoom: + agranda la hoja, el porcentaje vuelve a ajustar al ancho
   const zoom = () => view.locator('.ml-pages').evaluate((el) => Number((el as HTMLElement).style.zoom));
   const fit = await zoom();
-  await view.locator('.ml-zoom button[aria-label="Zoom in"]').click();
+  await page.locator('.view-action[aria-label="Zoom in"]').filter({ visible: true }).click();
   await expect.poll(zoom).toBeCloseTo(Math.round(fit * 10) / 10 + 0.1, 5);
-  await expect(view.locator('.ml-zoom-label')).toHaveText(`${Math.round((Math.round(fit * 10) / 10 + 0.1) * 100)}%`);
+  await expect(page.locator('.ml-zoom-label').filter({ visible: true })).toHaveText(`${Math.round((Math.round(fit * 10) / 10 + 0.1) * 100)}%`);
   await page.screenshot({ path: `test-results/split-pages-zoom-${test.info().project.name}.png` });
-  await view.locator('.ml-zoom-label').click();
+  await page.locator('.ml-zoom-label').filter({ visible: true }).click();
   await expect.poll(zoom).toBeCloseTo(fit, 5);
   await page.screenshot({ path: `test-results/split-pages-${test.info().project.name}.png` });
 });

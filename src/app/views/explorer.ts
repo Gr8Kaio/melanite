@@ -2,7 +2,7 @@ import { ItemView, FileView } from './view';
 import { TAbstractFile, TFile, TFolder } from '../../core/vault';
 import { setIcon } from '../ui/icons';
 import { Menu, onContextMenu } from '../ui/modal';
-import { exportPdf, notesIn } from '../pdf';
+import { exportFolderPdf, exportPdf } from '../pdf';
 import { t } from '../i18n';
 import { Platform } from '../platform';
 
@@ -179,7 +179,7 @@ export class FileExplorerView extends ItemView {
     const menu = new Menu()
       .addItem((i) => i.setTitle(t('cmd.newNote')).setIcon('file-plus').onClick(() => fm.createAndOpen(folder)))
       .addItem((i) => i.setTitle(t('cmd.newFolder')).setIcon('folder-plus').onClick(() => fm.promptNewFolder(folder)))
-      .addItem((i) => i.setTitle(t('pdf.exportFolder')).setIcon('file-down').onClick(() => exportPdf(this.app, notesIn(this.app, folder.path), folder.isRoot() ? 'Melanite' : folder.name)));
+      .addItem((i) => i.setTitle(t('pdf.exportFolder')).setIcon('file-down').onClick(() => exportFolderPdf(this.app, folder.path, folder.isRoot() ? 'Melanite' : folder.name)));
     if (!folder.isRoot()) {
       menu.addSeparator()
         .addItem((i) => i.setTitle(t('file.rename')).setIcon('pencil').onClick(() => fm.promptForRename(folder)))

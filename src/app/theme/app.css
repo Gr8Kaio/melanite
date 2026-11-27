@@ -313,10 +313,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--interactive-acce
 /* ---------------------------------------------------------------- editor */
 
 .markdown-view { overflow: hidden; display: flex; flex-direction: column; position: relative; }
-.ml-zoom { display: none; }
-.markdown-view.is-split > .ml-zoom { display: flex; align-items: center; gap: 2px; position: absolute; right: 16px; bottom: 16px; z-index: 2; padding: 2px; border-radius: 8px; background: var(--background-primary); border: 1px solid var(--background-modifier-border); box-shadow: var(--shadow); }
-.ml-zoom-label { min-width: 48px; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 4px; }
-.is-mobile .ml-zoom button { min-width: 44px; min-height: 44px; }
+.view-action.ml-zoom-label { width: auto; min-width: 42px; padding: 0 4px; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text-muted); }
 .markdown-source-view, .markdown-reading-view { flex: 1; min-height: 0; }
 .markdown-reading-view { overflow: auto; }
 /* lado a lado: editor (código) | vista previa; en el teléfono, uno arriba del otro */
@@ -428,6 +425,14 @@ body:not(.is-mobile) .markdown-view.is-split > .markdown-source-view { flex: 0 0
 .ml-page .markdown-rendered img.ml-align-right { margin-left: 0; position: relative; left: 100%; transform: translateX(-100%); }
 .ml-page > div > :first-child { margin-top: 0; }
 .ml-pagebreak { display: none; }
+/* exportar carpeta a PDF: elegir notas y orden */
+.ml-pdf-all { display: flex; align-items: center; gap: 8px; margin: 12px 0 6px; padding: 0 8px; font-weight: 600; cursor: pointer; }
+.ml-pdf-list { max-height: 55vh; overflow-y: auto; border: 1px solid var(--background-modifier-border); border-radius: var(--radius-s); }
+.ml-pdf-row { display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-bottom: 1px solid var(--background-modifier-border); background: var(--background-primary); cursor: grab; }
+.ml-pdf-row:last-child { border-bottom: none; }
+.ml-pdf-row.is-dragging { opacity: 0.4; }
+.ml-pdf-row label { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer; overflow-wrap: anywhere; }
+.ml-pdf-grip { display: flex; color: var(--text-faint); }
 /* exportar a PDF: las hojas se arman fuera de pantalla (hay que medirlas) y al imprimir es lo único que se ve */
 .ml-print { position: fixed; left: -10000px; top: 0; font-family: var(--font-text); user-select: text; overflow-wrap: break-word; }
 @media print {
