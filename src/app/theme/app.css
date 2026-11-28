@@ -493,6 +493,8 @@ body.ml-page-numbers .ml-page:not([data-numbers=off])::after, .ml-page[data-numb
 .markdown-rendered .math-block { display: block; text-align: center; overflow: hidden; padding: 0.25em 0; margin: 0.8em 0; }
 .ml-math-glue { white-space: nowrap; }
 .ml-math-glue .katex { white-space: normal; }
+/* fracciones en línea: aire arriba y abajo para que no toquen a la línea vecina (el padding solo cuenta en inline-block) */
+.math-inline:has(.mfrac) { display: inline-block; padding: 0.3em 0; }
 .markdown-rendered .footnotes { font-size: 0.9em; color: var(--text-muted); }
 .markdown-rendered .footnotes-sep { margin: 2em 0 1em; }
 .markdown-rendered .block-language-mermaid { text-align: center; margin: 0.8em 0; }
