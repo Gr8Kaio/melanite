@@ -12,7 +12,7 @@ import type { Menu } from '../ui/modal';
 import { setIcon } from '../ui/icons';
 import { t } from '../i18n';
 import { DRAG_TYPE } from './explorer';
-import { paginate } from '../render/pages';
+import { paginate, previewCuts } from '../render/pages';
 import { exportPdf } from '../pdf';
 import { IMAGE_EXTS } from '../../core/path';
 
@@ -248,7 +248,8 @@ export class MarkdownView extends FileView {
     const pages = createDiv('ml-pages');
     this.renderedEl.empty();
     this.renderedEl.appendChild(pages);
-    paginate(src, pages);
+    const cuts = paginate(src, pages);
+    if (this.file) previewCuts.set(this.file.path, { text: this.getViewData(), cuts });
     this.fitPages();
     this.readingEl.scrollTop = scroll;
   }

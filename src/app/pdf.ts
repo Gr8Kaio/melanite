@@ -2,7 +2,7 @@ import type { App } from './app';
 import type { TFile } from '../core/vault';
 import { Component } from '../core/component';
 import { MarkdownRenderer } from './render/renderer';
-import { paginate } from './render/pages';
+import { paginate, previewCuts } from './render/pages';
 import { Modal, Notice } from './ui/modal';
 import { setIcon } from './ui/icons';
 import { registerStrings, t } from './i18n';
@@ -37,10 +37,13 @@ export async function exportPdf(app: App, files: TFile[], name: string): Promise
   try {
     for (const file of files) {
       const el = createDiv();
-      await MarkdownRenderer.render(app, await app.vault.cachedRead(file), el, file.path, component);
+      const text = await app.vault.cachedRead(file);
+      await MarkdownRenderer.render(app, text, el, file.path, component);
       await Promise.all(Array.from(el.querySelectorAll('img')).map((img) => img.decode().catch(() => undefined)));
       const pages = root.createDiv('ml-pages');
-      paginate(el, pages);
+      // mismas hojas que la vista previa si está al día con lo guardado; si no (otra nota de la carpeta, cambios sin guardar) se mide
+      const seen = previewCuts.get(file.path);
+      paginate(el, pages, seen?.text === text ? seen.cuts : undefined);
     }
     document.title = name; // nombre sugerido en "Guardar como PDF"
     body.addClass('is-printing');
