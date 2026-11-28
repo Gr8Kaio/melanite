@@ -31,7 +31,8 @@ export function paginate(src: HTMLElement, pages: HTMLElement): void {
   for (const b of blocks) {
     if (b.hasClass('ml-pagebreak')) { cuts.add(b); start = null; continue; }
     if (start === null) start = b.offsetTop;
-    else if (b.offsetTop + b.offsetHeight - start > limit) { cuts.add(b); start = b.offsetTop; }
+    // el margen de abajo del último bloque se sale del contenedor y estira la hoja: si no se cuenta, al imprimir sobra una hoja en blanco
+    else if (b.offsetTop + b.offsetHeight + parseFloat(getComputedStyle(b).marginBottom) - start > limit) { cuts.add(b); start = b.offsetTop; }
   }
   pages.empty();
   let body = addPage();

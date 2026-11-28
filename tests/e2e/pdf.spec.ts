@@ -64,3 +64,22 @@ test('exportar carpeta: elegir qué notas van y en qué orden', async ({ page })
   await expect(rows.nth(1).locator('input')).not.toBeChecked();
   await expect(rows.nth(2).locator('input')).toBeChecked();
 });
+
+test('exportar a PDF: una nota larga no suma hojas en blanco', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.locator('.cm-content')).toContainText('Welcome');
+  const md = Array.from({ length: 40 }, (_, i) => `## Sección ${i}\n\nUn párrafo con algo de texto para llenar la hoja, bastante largo para que ocupe un par de renglones en A4 y empuje los bloques.\n\n- uno\n- dos\n  - tres\n\n> cita ${i}`).join('\n\n');
+  await page.evaluate((s) => {
+    const w = window as unknown as { printed: number; app: { vault: { create(p: string, s: string): Promise<unknown> } } };
+    w.printed = 0;
+    window.print = () => { w.printed++; };
+    return w.app.vault.create('Largo.md', s);
+  }, md);
+  await page.evaluate(() => (window as unknown as { app: { workspace: { openLinkText(l: string, s: string): Promise<void> } } }).app.workspace.openLinkText('Largo', ''));
+  await page.evaluate(() => (window as unknown as { app: { commands: { executeCommandById(id: string): boolean } } }).app.commands.executeCommandById('file:export-pdf'));
+  await expect.poll(() => page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(1);
+  const sheets = await page.locator('.ml-print .ml-page').count();
+  expect(sheets).toBeGreaterThan(3);
+  const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
+  expect(pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g)?.length).toBe(sheets);
+});
