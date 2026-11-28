@@ -54,6 +54,8 @@ export function paginate(src: HTMLElement, pages: HTMLElement, given?: number[])
   blocks.forEach((b, i) => { if (at.has(i)) body = addPage(); body.appendChild(b); });
   // una hoja que se pasa de A4 solo puede ser por un bloque más alto que una hoja: esa se deja estirar al imprimir;
   // las demás quedan clavadas en una hoja de papel (si al imprimir miden unos px más, no se corre nada a otra hoja)
-  for (const p of Array.from(pages.children) as HTMLElement[]) p.toggleClass('is-tall', p.offsetHeight > full + 1);
+  for (const p of Array.from(pages.children) as HTMLElement[]) {
+    p.toggleClass('is-tall', p.offsetHeight > full + 1 && Array.from(p.firstElementChild!.children).some((b) => (b as HTMLElement).offsetHeight > limit));
+  }
   return cuts;
 }

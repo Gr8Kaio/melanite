@@ -105,3 +105,25 @@ test('exportar a PDF: las hojas son las de la vista previa aunque al medir de nu
   await expect.poll(() => page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(1);
   expect(await firstOf('.ml-print .ml-page')).toEqual(preview);
 });
+
+test('después de un salto de hoja el título no suma margen arriba: ninguna hoja se pasa de A4 ni sobra una en el PDF', async ({ page }) => {
+  await page.goto('./');
+  await expect(page.locator('.cm-content')).toContainText('Welcome');
+  const para = (i: number) => `Párrafo ${i} con texto suficiente para ocupar un renglón entero de la hoja A4 y un poco más de largo.`;
+  // varias alturas de relleno: alguna deja la hoja justo al límite, donde el margen olvidado la hacía pasar
+  const md = Array.from({ length: 12 }, (_, k) => `\\newpage\n\n## Sección ${k}\n\n` + Array.from({ length: 14 + k }, (_, i) => para(i)).join('\n\n')).join('\n\n');
+  await page.evaluate((s) => {
+    const w = window as unknown as { printed: number; app: { vault: { create(p: string, s: string): Promise<unknown> }; workspace: { openLinkText(l: string, s: string): Promise<void> } } };
+    w.printed = 0;
+    window.print = () => { w.printed++; };
+    return w.app.vault.create('Saltos.md', s).then(() => w.app.workspace.openLinkText('Saltos', ''));
+  }, md);
+  const view = page.locator('.markdown-view.is-split').filter({ visible: true });
+  await expect.poll(() => view.locator('.ml-page').count()).toBeGreaterThan(12);
+  const heights = await view.locator('.ml-page').evaluateAll((ps) => ps.map((p) => (p as HTMLElement).offsetHeight));
+  expect(Math.max(...heights)).toBe(Math.min(...heights));
+  await page.evaluate(() => (window as unknown as { app: { commands: { executeCommandById(id: string): boolean } } }).app.commands.executeCommandById('file:export-pdf'));
+  await expect.poll(() => page.evaluate(() => (window as unknown as { printed: number }).printed)).toBe(1);
+  const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
+  expect(pdf.toString('latin1').match(/\/Type\s*\/Page[^s]/g)?.length).toBe(heights.length);
+});

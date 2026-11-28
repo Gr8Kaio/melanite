@@ -427,7 +427,8 @@ body:not(.is-mobile) .markdown-view.is-split > .markdown-source-view { flex: 0 0
 .ml-page .markdown-rendered img { max-width: calc(100% + var(--page-margin)); }
 .ml-page .markdown-rendered img.ml-align-center { max-width: calc(100% + 2 * var(--page-margin)); margin-left: 0; margin-right: 0; position: relative; left: 50%; transform: translateX(-50%); }
 .ml-page .markdown-rendered img.ml-align-right { margin-left: 0; position: relative; left: 100%; transform: translateX(-100%); }
-.ml-page > div > :first-child { margin-top: 0; }
+/* el primer bloque visible de la hoja no lleva margen arriba (el paginado no lo cuenta); tras \newpage el primero es el salto, que no se ve */
+.ml-page > div > :first-child, .ml-page > div > .ml-pagebreak + * { margin-top: 0; }
 .ml-pagebreak { display: none; }
 /* número de página al pie (Ajustes → Editor); la cuenta sigue de corrido entre notas al exportar una carpeta */
 .markdown-preview-view, .ml-print { counter-reset: ml-page; }
