@@ -30,7 +30,7 @@ export function hotkeyLabel(h: Hotkey): string {
 function matches(h: Hotkey, e: KeyboardEvent): boolean {
   const want = new Set(h.modifiers.map((m) => (m === 'Mod' ? (isMac ? 'Meta' : 'Ctrl') : m)));
   if (want.has('Ctrl') !== e.ctrlKey || want.has('Meta') !== e.metaKey || want.has('Shift') !== e.shiftKey || want.has('Alt') !== e.altKey) return false;
-  const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  const key = e.key.toLowerCase();
   // con Shift, e.key cambia ("," → "<"): comparamos también por código físico
   return key === h.key.toLowerCase() || e.code === `Key${h.key.toUpperCase()}` || e.code === `Digit${h.key}`;
 }
@@ -55,6 +55,12 @@ export class Commands {
   }
 
   hotkeysFor(cmd: Command): Hotkey[] { return this.customKeys[cmd.id] ?? cmd.hotkeys ?? []; }
+
+  /** Atajo del comando que se llama así (los botones usan el nombre del comando de etiqueta), o ''. */
+  shortcutByName(name: string): string {
+    const cmd = Object.values(this.commands).find((c) => c.name === name);
+    return cmd ? this.shortcut(cmd.id) : '';
+  }
 
   /** Atajo de un comando para mostrar en un menú ("Alt+R"), o '' si no tiene. */
   shortcut(id: string): string {

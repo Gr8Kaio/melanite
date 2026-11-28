@@ -170,6 +170,13 @@ export class App extends Events {
     this.addRibbonIcon('panel-left', t('cmd.toggleLeft'), () => this.workspace.leftSplit.toggle());
     this.addRibbonIcon('file-plus', t('cmd.newNote'), () => this.commands.executeCommandById('file:new'));
     document.body.toggleClass('is-mobile', Platform.isPhone);
+    // tooltip de los botones: la etiqueta + su atajo, calculado al pasar el mouse (los atajos se pueden cambiar en Ajustes)
+    document.addEventListener('pointerover', (e) => {
+      const el = (e.target as Element).closest?.<HTMLElement>('.clickable-icon[aria-label]');
+      if (!el) return;
+      const label = el.getAttribute('aria-label')!, key = this.commands.shortcutByName(label);
+      el.title = key ? `${label} (${key})` : label;
+    });
     document.body.toggleClass('is-ios', Platform.isIos);
     Platform.onChange(() => document.body.toggleClass('is-mobile', Platform.isPhone));
   }

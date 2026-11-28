@@ -21,7 +21,7 @@ export default class BookmarksPlugin extends Plugin {
     this.registerView(VIEW, (leaf) => new BookmarksView(leaf, this));
 
     this.addCommand({
-      id: 'bookmark-current', name: t('plugins.bookmarks.addFile'), icon: 'bookmark',
+      id: 'bookmark-current', name: t('plugins.bookmarks.addFile'), icon: 'bookmark', hotkeys: [{ modifiers: ['Alt'], key: 'b' }],
       checkCallback: (checking) => {
         const file = this.app.workspace.getActiveFile();
         if (!file) return false;

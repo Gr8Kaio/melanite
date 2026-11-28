@@ -34,7 +34,7 @@ export class FileExplorerView extends ItemView {
     };
     btn('file-plus', t('cmd.newNote'), () => this.app.fileManager.createAndOpen(this.app.fileManager.getNewFileParent()));
     btn('folder-plus', t('cmd.newFolder'), () => this.app.fileManager.promptNewFolder(this.app.fileManager.getNewFileParent()));
-    btn('chevrons-down-up', t('explorer.collapseAll'), () => { this.expanded.clear(); this.persist(); this.render(); });
+    btn('chevrons-down-up', t('explorer.collapseAll'), () => this.collapseAll());
 
     this.treeEl = this.contentEl.createDiv('nav-files-container');
     this.contentEl.addClass('file-explorer');
@@ -189,6 +189,8 @@ export class FileExplorerView extends ItemView {
     });
   }
 
+  collapseAll(): void { this.expanded.clear(); this.persist(); this.render(); }
+
   private highlightActive() {
     const active = this.app.workspace.getActiveFile();
     this.treeEl.querySelectorAll('.is-active').forEach((el) => el.removeClass('is-active'));
@@ -205,7 +207,7 @@ export class FileExplorerView extends ItemView {
       .addSeparator()
       .addItem((i) => i.setTitle(t('file.rename')).setIcon('pencil').setShortcut(key('file:rename')).onClick(() => fm.promptForRename(file)))
       .addItem((i) => i.setTitle(t('file.moveTo')).setIcon('folder-input').setShortcut(key('file:move')).onClick(() => fm.promptMove(file)))
-      .addItem((i) => i.setTitle(t('file.duplicate')).setIcon('copy').onClick(() => fm.duplicate(file)))
+      .addItem((i) => i.setTitle(t('file.duplicate')).setIcon('copy').setShortcut(key('file:duplicate')).onClick(() => fm.duplicate(file)))
       .addItem((i) => i.setTitle(t('file.copyPath')).setIcon('clipboard').onClick(() => navigator.clipboard?.writeText(file.path)));
     if (file.extension === 'md') menu.addItem((i) => i.setTitle(t('pdf.export')).setIcon('file-down').setShortcut(key('file:export-pdf')).onClick(() => exportPdf(this.app, [file], file.basename)));
     menu.addSeparator()

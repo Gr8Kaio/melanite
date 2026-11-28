@@ -1,6 +1,6 @@
 {
   "name": "melanite",
-  "version": "0.18.3",
+  "version": "0.19.0",
   "description": "Notas en Markdown, local-first, con plugins",
   "scripts": {
     "dev": "vite",

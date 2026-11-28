@@ -19,7 +19,7 @@ export default class DailyNotesPlugin extends Plugin {
 
   async onload() {
     this.settings = { ...DEFAULTS, ...((await this.loadData()) ?? {}) };
-    this.addCommand({ id: 'open-today', name: t('plugins.dailyNotes.open'), icon: 'calendar', callback: () => this.openToday() });
+    this.addCommand({ id: 'open-today', name: t('plugins.dailyNotes.open'), icon: 'calendar', hotkeys: [{ modifiers: ['Alt'], key: 't' }], callback: () => this.openToday() });
     this.addRibbonIcon('calendar', t('plugins.dailyNotes.open'), () => this.openToday());
     this.addSettingTab(new DailySettingTab(this.app, this));
   }

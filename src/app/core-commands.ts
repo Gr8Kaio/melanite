@@ -14,10 +14,12 @@ export function registerCoreCommands(app: App): void {
     callback: () => app.fileManager.createAndOpen(app.fileManager.getNewFileParent()) });
   add({ id: 'file:new-tab', name: t('cmd.newNoteTab'), icon: 'file-plus',
     callback: async () => { const leaf = ws.getLeaf('tab'); ws.setActiveLeaf(leaf); await app.fileManager.createAndOpen(app.fileManager.getNewFileParent()); } });
-  add({ id: 'file:new-folder', name: t('cmd.newFolder'), icon: 'folder-plus', callback: () => app.fileManager.promptNewFolder(app.fileManager.getNewFileParent()) });
+  add({ id: 'file:new-folder', name: t('cmd.newFolder'), icon: 'folder-plus', hotkeys: [{ modifiers: ['Alt', 'Shift'], key: 'n' }], callback: () => app.fileManager.promptNewFolder(app.fileManager.getNewFileParent()) });
   add({ id: 'file:rename', name: t('file.rename'), icon: 'pencil', hotkeys: [{ modifiers: ['Alt'], key: 'r' }],
     checkCallback: (checking) => { const f = activeFile(); if (f && !checking) void app.fileManager.promptForRename(f); return !!f; } });
-  add({ id: 'file:delete', name: t('file.delete'), icon: 'trash',
+  add({ id: 'file:duplicate', name: t('file.duplicate'), icon: 'copy', hotkeys: [{ modifiers: ['Alt'], key: 'd' }],
+    checkCallback: (checking) => { const f = activeFile(); if (f && !checking) void app.fileManager.duplicate(f); return !!f; } });
+  add({ id: 'file:delete', name: t('file.delete'), icon: 'trash', hotkeys: [{ modifiers: ['Alt'], key: 'Delete' }],
     checkCallback: (checking) => { const f = activeFile(); if (f && !checking) void app.fileManager.promptForDeletion(f); return !!f; } });
   add({ id: 'file:move', name: t('file.moveTo'), icon: 'folder-input',
     checkCallback: (checking) => { const f = activeFile(); if (f && !checking) void app.fileManager.promptMove(f); return !!f; } });
@@ -34,6 +36,8 @@ export function registerCoreCommands(app: App): void {
       if (f && !checking) void ws.ensureSideLeaf(EXPLORER_VIEW, 'left', { reveal: true }).then((leaf) => (leaf.view as FileExplorerView).revealFile(f));
       return !!f;
     } });
+  add({ id: 'file:collapse-all', name: t('explorer.collapseAll'), icon: 'chevrons-down-up', hotkeys: [{ modifiers: ['Alt', 'Shift'], key: 'c' }],
+    callback: () => { for (const l of ws.getLeavesOfType(EXPLORER_VIEW)) (l.view as FileExplorerView).collapseAll(); } });
   add({ id: 'editor:attach', name: t('cmd.attach'), icon: 'paperclip',
     editorCallback: (_e, view) => {
       const input = createEl('input', { type: 'file', attr: { multiple: true, accept: 'image/*,application/pdf,*/*' } });
