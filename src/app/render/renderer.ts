@@ -54,6 +54,22 @@ export async function renderMath(el: HTMLElement, tex: string, display: boolean)
   katex.render(tex, el, { ...opts, displayMode: display });
 }
 
+/**
+ * Chromium deja cortar la línea entre una fórmula en línea y el texto pegado ("(" antes, ")." después):
+ * se envuelven juntos en un span nowrap. Adentro, .katex vuelve a normal, así una fórmula larga sigue cortando.
+ */
+export function glueInlineMath(m: HTMLElement): void {
+  const prev = m.previousSibling, next = m.nextSibling;
+  const before = prev?.nodeType === Node.TEXT_NODE ? /\S+$/.exec(prev.textContent!)?.[0] : undefined;
+  const after = next?.nodeType === Node.TEXT_NODE ? /^\S+/.exec(next.textContent!)?.[0] : undefined;
+  if (!before && !after) return;
+  const glue = createSpan('ml-math-glue');
+  m.before(glue);
+  if (before) { prev!.textContent = prev!.textContent!.slice(0, -before.length); glue.append(before); }
+  glue.append(m);
+  if (after) { next!.textContent = next!.textContent!.slice(after.length); glue.append(after); }
+}
+
 /** Lo que no se puede cortar (un aligned, un \left…\right enorme) se achica hasta entrar: nunca una barra de scroll. Tiene que estar en el DOM. */
 export function fitWideMath(root: HTMLElement): void {
   for (const el of Array.from(root.querySelectorAll<HTMLElement>('.math-block'))) {
@@ -231,6 +247,7 @@ export class MarkdownRenderer {
     }
 
     for (const m of Array.from(el.querySelectorAll<HTMLElement>('.math[data-tex]'))) {
+      if (m.hasClass('math-inline')) glueInlineMath(m);
       jobs.push(renderMath(m, m.dataset.tex!, m.hasClass('math-block')));
     }
 
