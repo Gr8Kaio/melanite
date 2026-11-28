@@ -126,6 +126,8 @@ export class MenuItem {
   setDisabled(disabled: boolean): this { this.disabled = disabled; this.dom.toggleClass('is-disabled', disabled); return this; }
   setWarning(warning: boolean): this { this.dom.toggleClass('mod-warning', warning); return this; }
   setSection(_section: string): this { return this; }
+  /** Atajo de teclado a la derecha del título (vacío: nada). */
+  setShortcut(text: string): this { if (text) this.dom.createDiv({ cls: 'menu-item-shortcut', text }); return this; }
   onClick(cb: (evt: MouseEvent | KeyboardEvent) => unknown): this { this.callback = cb; return this; }
 }
 

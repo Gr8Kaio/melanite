@@ -169,17 +169,18 @@ export class MarkdownView extends FileView {
 
   onPaneMenu(menu: Menu): void {
     const file = this.file;
-    menu.addItem((i) => i.setTitle(this.mode === 'preview' ? t('view.editMode') : t('view.readingMode')).setIcon(this.mode === 'preview' ? 'pencil' : 'book-open').onClick(() => this.toggleMode()));
-    menu.addItem((i) => i.setTitle(t('view.splitMode')).setIcon('columns-2').setChecked(this.mode === 'split').onClick(() => this.toggleSplit()));
+    const key = (id: string) => this.app.commands.shortcut(id);
+    menu.addItem((i) => i.setTitle(this.mode === 'preview' ? t('view.editMode') : t('view.readingMode')).setIcon(this.mode === 'preview' ? 'pencil' : 'book-open').setShortcut(key('markdown:toggle-preview')).onClick(() => this.toggleMode()));
+    menu.addItem((i) => i.setTitle(t('view.splitMode')).setIcon('columns-2').setChecked(this.mode === 'split').setShortcut(key('markdown:toggle-split')).onClick(() => this.toggleSplit()));
     if (this.mode === 'source') {
-      menu.addItem((i) => i.setTitle(this.sourceMode ? t('view.livePreview') : t('view.sourceMode')).setIcon('code').onClick(() => this.toggleSourceMode()));
+      menu.addItem((i) => i.setTitle(this.sourceMode ? t('view.livePreview') : t('view.sourceMode')).setIcon('code').setShortcut(key('markdown:toggle-source')).onClick(() => this.toggleSourceMode()));
     }
     if (!file) return;
     menu.addSeparator();
-    menu.addItem((i) => i.setTitle(t('file.rename')).setIcon('pencil').onClick(() => this.app.fileManager.promptForRename(file)));
+    menu.addItem((i) => i.setTitle(t('file.rename')).setIcon('pencil').setShortcut(key('file:rename')).onClick(() => this.app.fileManager.promptForRename(file)));
     menu.addItem((i) => i.setTitle(t('file.copyPath')).setIcon('copy').onClick(() => navigator.clipboard?.writeText(file.path)));
-    menu.addItem((i) => i.setTitle(t('pdf.export')).setIcon('file-down').onClick(async () => { await this.save(); await exportPdf(this.app, [file], file.basename); }));
-    menu.addItem((i) => i.setTitle(t('file.delete')).setIcon('trash').setWarning(true).onClick(() => this.app.fileManager.promptForDeletion(file)));
+    menu.addItem((i) => i.setTitle(t('pdf.export')).setIcon('file-down').setShortcut(key('file:export-pdf')).onClick(async () => { await this.save(); await exportPdf(this.app, [file], file.basename); }));
+    menu.addItem((i) => i.setTitle(t('file.delete')).setIcon('trash').setWarning(true).setShortcut(key('file:delete')).onClick(() => this.app.fileManager.promptForDeletion(file)));
     menu.addSeparator();
   }
 

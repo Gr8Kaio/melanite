@@ -569,6 +569,8 @@ body.ml-page-numbers .ml-page:not([data-numbers=off])::after, .ml-page[data-numb
 .menu-item-icon { display: flex; width: 18px; color: var(--text-muted); }
 .menu-item.mod-warning .menu-item-icon { color: var(--text-error); }
 .menu-item-icon .svg-icon { width: 16px; height: 16px; }
+.menu-item-shortcut { margin-left: auto; padding-left: 24px; color: var(--text-muted); font-size: var(--font-ui-smaller); white-space: nowrap; }
+.is-mobile .menu-item-shortcut { display: none; }
 .menu-separator { height: 1px; margin: 4px 6px; background: var(--background-modifier-border); }
 .menu-separator:first-child, .menu-separator:last-child, .menu-separator + .menu-separator { display: none; }
 

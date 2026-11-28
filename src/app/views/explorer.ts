@@ -198,26 +198,28 @@ export class FileExplorerView extends ItemView {
   private fileMenu(file: TFile): Menu {
     const fm = this.app.fileManager;
     const ws = this.app.workspace;
+    const key = (id: string) => this.app.commands.shortcut(id);
     const menu = new Menu()
       .addItem((i) => i.setTitle(t('file.openNewTab')).setIcon('file-plus').onClick(() => ws.getLeaf('tab').openFile(file)))
       .addItem((i) => i.setTitle(t('file.openRight')).setIcon('columns-2').onClick(() => ws.getLeaf('split').openFile(file)))
       .addSeparator()
-      .addItem((i) => i.setTitle(t('file.rename')).setIcon('pencil').onClick(() => fm.promptForRename(file)))
-      .addItem((i) => i.setTitle(t('file.moveTo')).setIcon('folder-input').onClick(() => fm.promptMove(file)))
+      .addItem((i) => i.setTitle(t('file.rename')).setIcon('pencil').setShortcut(key('file:rename')).onClick(() => fm.promptForRename(file)))
+      .addItem((i) => i.setTitle(t('file.moveTo')).setIcon('folder-input').setShortcut(key('file:move')).onClick(() => fm.promptMove(file)))
       .addItem((i) => i.setTitle(t('file.duplicate')).setIcon('copy').onClick(() => fm.duplicate(file)))
       .addItem((i) => i.setTitle(t('file.copyPath')).setIcon('clipboard').onClick(() => navigator.clipboard?.writeText(file.path)));
-    if (file.extension === 'md') menu.addItem((i) => i.setTitle(t('pdf.export')).setIcon('file-down').onClick(() => exportPdf(this.app, [file], file.basename)));
+    if (file.extension === 'md') menu.addItem((i) => i.setTitle(t('pdf.export')).setIcon('file-down').setShortcut(key('file:export-pdf')).onClick(() => exportPdf(this.app, [file], file.basename)));
     menu.addSeparator()
-      .addItem((i) => i.setTitle(t('file.delete')).setIcon('trash').setWarning(true).onClick(() => fm.promptForDeletion(file)));
+      .addItem((i) => i.setTitle(t('file.delete')).setIcon('trash').setWarning(true).setShortcut(key('file:delete')).onClick(() => fm.promptForDeletion(file)));
     ws.trigger('file-menu', menu, file, 'file-explorer'); // los plugins agregan ítems (como en Obsidian)
     return menu;
   }
 
   private folderMenu(folder: TFolder): Menu {
     const fm = this.app.fileManager;
+    const key = (id: string) => this.app.commands.shortcut(id);
     const menu = new Menu()
-      .addItem((i) => i.setTitle(t('cmd.newNote')).setIcon('file-plus').onClick(() => fm.createAndOpen(folder)))
-      .addItem((i) => i.setTitle(t('cmd.newFolder')).setIcon('folder-plus').onClick(() => fm.promptNewFolder(folder)))
+      .addItem((i) => i.setTitle(t('cmd.newNote')).setIcon('file-plus').setShortcut(key('file:new')).onClick(() => fm.createAndOpen(folder)))
+      .addItem((i) => i.setTitle(t('cmd.newFolder')).setIcon('folder-plus').setShortcut(key('file:new-folder')).onClick(() => fm.promptNewFolder(folder)))
       .addItem((i) => i.setTitle(t('pdf.exportFolder')).setIcon('file-down').onClick(() => exportFolderPdf(this.app, folder.path, folder.isRoot() ? 'Melanite' : folder.name)));
     if (this.order[folder.path]) {
       menu.addItem((i) => i.setTitle(t('explorer.resetOrder')).setIcon('arrow-down-a-z').onClick(() => {

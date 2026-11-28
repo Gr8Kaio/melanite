@@ -98,12 +98,13 @@ export class WorkspaceLeaf extends Events {
 
   addPaneMenuItems(menu: Menu): void {
     const ws = this.app.workspace;
+    const key = (id: string) => this.app.commands.shortcut(id);
     if (!this.isSidebar) {
-      menu.addItem((i) => i.setTitle(t('cmd.splitRight')).setIcon('columns-2').onClick(() => ws.duplicateLeaf(this, 'vertical')));
-      menu.addItem((i) => i.setTitle(t('cmd.splitDown')).setIcon('rows-2').onClick(() => ws.duplicateLeaf(this, 'horizontal')));
+      menu.addItem((i) => i.setTitle(t('cmd.splitRight')).setIcon('columns-2').setShortcut(key('workspace:split-vertical')).onClick(() => ws.duplicateLeaf(this, 'vertical')));
+      menu.addItem((i) => i.setTitle(t('cmd.splitDown')).setIcon('rows-2').setShortcut(key('workspace:split-horizontal')).onClick(() => ws.duplicateLeaf(this, 'horizontal')));
       menu.addSeparator();
     }
-    menu.addItem((i) => i.setTitle(t('cmd.closeTab')).setIcon('x').onClick(() => this.detach()));
+    menu.addItem((i) => i.setTitle(t('cmd.closeTab')).setIcon('x').setShortcut(key('workspace:close')).onClick(() => this.detach()));
     if (this.parent.children.length > 1) {
       menu.addItem((i) => i.setTitle(t('cmd.closeOthers')).onClick(() => { for (const l of this.parent.children.slice()) if (l !== this) l.detach(); }));
     }

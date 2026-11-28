@@ -50,7 +50,7 @@ export default class BookmarksPlugin extends Plugin {
     // entrada en el menú contextual de archivos del explorador
     this.registerEvent(this.app.workspace.on('file-menu', (menu: Menu, file: TAbstractFile) => {
       if (!(file instanceof TFile)) return;
-      menu.addItem((i) => i.setTitle(t('plugins.bookmarks.menu')).setIcon('bookmark').onClick(() => this.add({ type: 'file', path: file.path })));
+      menu.addItem((i) => i.setTitle(t('plugins.bookmarks.menu')).setIcon('bookmark').setShortcut(this.app.commands.shortcut(`${this.manifest.id}:bookmark-current`)).onClick(() => this.add({ type: 'file', path: file.path })));
     }));
     // seguir a las notas renombradas
     this.registerEvent(this.app.vault.on('rename', (file: TAbstractFile, oldPath: string) => {

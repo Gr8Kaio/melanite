@@ -56,6 +56,13 @@ export class Commands {
 
   hotkeysFor(cmd: Command): Hotkey[] { return this.customKeys[cmd.id] ?? cmd.hotkeys ?? []; }
 
+  /** Atajo de un comando para mostrar en un menú ("Alt+R"), o '' si no tiene. */
+  shortcut(id: string): string {
+    const cmd = this.commands[id];
+    const h = cmd && this.hotkeysFor(cmd)[0];
+    return h ? hotkeyLabel(h) : '';
+  }
+
   /** ¿Se puede ejecutar ahora? (checkCallback / editorCallback necesitan contexto). */
   isAvailable(cmd: Command): boolean {
     const md = this.app.getActiveMarkdownView();
