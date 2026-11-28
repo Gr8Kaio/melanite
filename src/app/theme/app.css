@@ -490,7 +490,7 @@ body.ml-page-numbers .ml-page:not([data-numbers=off])::after, .ml-page[data-numb
 .markdown-rendered .task-list-item { list-style: none; }
 .markdown-rendered .task-list-item-checkbox { margin: 0 0.45em 0 -1.4em; vertical-align: -1px; cursor: pointer; }
 .markdown-rendered .task-list-item.is-checked { color: var(--text-muted); text-decoration: line-through; }
-.markdown-rendered .math-block { display: block; text-align: center; overflow: hidden; margin: 0.8em 0; }
+.markdown-rendered .math-block { display: block; text-align: center; overflow: hidden; padding: 0.25em 0; margin: 0.8em 0; }
 .markdown-rendered .footnotes { font-size: 0.9em; color: var(--text-muted); }
 .markdown-rendered .footnotes-sep { margin: 2em 0 1em; }
 .markdown-rendered .block-language-mermaid { text-align: center; margin: 0.8em 0; }
